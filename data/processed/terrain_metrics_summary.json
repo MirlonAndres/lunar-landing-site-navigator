@@ -1,0 +1,39 @@
+{
+  "dataset_name": "LRO_LOLA_DEM_5MPP_SITE01",
+  "spatial_coverage_km": {
+    "width_km": 16.0,
+    "height_km": 16.0,
+    "total_area_km2": 256.0
+  },
+  "elevation_m": {
+    "min_m": -523.1834106445312,
+    "max_m": 1959.4962158203125,
+    "mean_m": 1139.058837890625,
+    "relief_m": 2482.6796875
+  },
+  "slope_deg": {
+    "min_deg": 0.0025816711131483316,
+    "max_deg": 59.450538635253906,
+    "mean_deg": 12.571142196655273,
+    "median_deg": 12.276025772094727
+  },
+  "roughness_m": {
+    "min_m": 0.0,
+    "max_m": 7.94512414932251,
+    "mean_m": 1.5921111106872559
+  },
+  "hazard_distribution_pct": {
+    "safe_pct": 1.72,
+    "caution_pct": 0.42,
+    "hazard_pct": 97.86,
+    "safe_area_km2": 4.41
+  },
+  "benchmarks_sec": {
+    "io_load": 0.025,
+    "slope_calc": 0.569,
+    "roughness_calc": 0.286,
+    "hazard_calc": 0.062,
+    "downsample_calc": 0.008,
+    "total_pipeline": 0.95
+  }
+}

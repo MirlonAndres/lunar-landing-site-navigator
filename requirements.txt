@@ -1,0 +1,25 @@
+# ==============================================================================
+# LUNAR LANDING NAVIGATOR - SYSTEM DEPENDENCIES
+# DEPENDENCIAS DEL SISTEMA - LUNAR LANDING NAVIGATOR
+# NASA Space Apps Challenge 2026 / Desafio NASA Space Apps 2026
+# ==============================================================================
+
+# 1. Scientific Data Processing and Planetary Calculations
+#    Procesamiento Cientifico de Datos y Calculos Planetarios
+numpy>=2.0.0
+scipy>=1.14.0
+pandas>=2.2.0
+pyarrow>=17.0.0
+tifffile>=2024.5.0
+requests>=2.32.0
+
+# 2. Asynchronous API and High-Frequency Real-Time Telemetry
+#    API Asincrona y Telemetria en Tiempo Real de Alta Frecuencia
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+websockets>=12.0
+pydantic>=2.8.0
+
+# 3. Environment Configuration Management
+#    Gestion de Variables de Configuracion de Entorno
+python-dotenv>=1.0.1

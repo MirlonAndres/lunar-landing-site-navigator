@@ -1,0 +1,33 @@
+# ==============================================================================
+# DOCKERIGNORE - LUNAR LANDING SITE NAVIGATOR
+# Keeps container image compact (~7.2 MB app payload) for fast Cloud Run build
+# ==============================================================================
+
+# Git metadata
+.git
+.gitignore
+
+# Python virtual environments and caches
+.venv
+venv
+env
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+
+# Raw 40MB GeoTIFF (only used for offline preprocessing; runtime uses data/processed/)
+data/raw/*
+!data/raw/.gitkeep
+
+# Firmware build artifacts
+firmware/esp32_s3_arm/.pio
+firmware/esp32_s3_arm/.vscode
+firmware/**/build
+
+# OS & IDE files
+.vscode
+.idea
+.DS_Store
+Thumbs.db

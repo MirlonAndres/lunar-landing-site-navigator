@@ -1,0 +1,32 @@
+# ==============================================================================
+# GCLOUDIGNORE - GOOGLE CLOUD RUN & CLOUD BUILD
+# Ensures fast 7 MB source upload with all processed NASA datasets included
+# ==============================================================================
+
+.gcloudignore
+.git
+.gitignore
+
+# Python virtual environments & bytecode
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Exclude 40MB raw GeoTIFF (not needed at runtime)
+data/raw/*
+!data/raw/.gitkeep
+
+# Explicitly ensure all processed datasets (.json and .parquet) ARE uploaded
+!data/processed/*.json
+!data/processed/*.parquet
+
+# Local environment secrets and IDE folders
+.env
+.vscode/
+.idea/
+.DS_Store
+firmware/esp32_s3_arm/.pio/
