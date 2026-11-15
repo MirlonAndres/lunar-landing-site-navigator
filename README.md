@@ -184,8 +184,8 @@ The digital twin and physical actuator share a calibrated closed-form inverse ki
 ### 1. Local Python Setup
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/lunar-landing-navigator.git
-cd lunar-landing-navigator
+git clone https://github.com/MirlonAndres/lunar-landing-site-navigator.git
+cd lunar-landing-site-navigator
 
 # Create virtual environment and install dependencies
 python -m venv .venv
