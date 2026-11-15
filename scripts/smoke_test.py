@@ -3,15 +3,10 @@ Lunar Landing Site Navigator - Environment Smoke Test
 Test de Verificacion del Entorno - Lunar Landing Site Navigator
 NASA Space Apps Challenge 2026
 
-English:
 Verifies that all required scientific, asynchronous API, and telemetry packages
 are correctly installed and importable. Also confirms that the modular directory
 architecture and configuration templates exist.
 
-Espanol:
-Verifica que todos los paquetes cientificos, de API asincrona y de telemetria
-esten correctamente instalados y sean importables. Confirma ademas la existencia
-de la arquitectura modular de directorios y plantillas de configuracion.
 """
 
 import sys
@@ -22,24 +17,23 @@ from pathlib import Path
 def verify_imports() -> bool:
     """
     English: Import all mission-critical dependencies and report status.
-    Espanol: Importar todas las dependencias criticas de mision y reportar estado.
     """
     print("==============================================================================")
-    print("1. VERIFYING PYTHON DEPENDENCIES / VERIFICANDO DEPENDENCIAS DE PYTHON")
+    print("1. VERIFYING PYTHON DEPENDENCIES")
     print("==============================================================================")
 
     dependencies = [
-        ("numpy", "NumPy Numerical Arrays / Arrays Numericos"),
-        ("scipy", "SciPy Scientific Processing / Procesamiento Cientifico"),
-        ("pandas", "Pandas Ephemeris DataFrames / Tablas de Efemerides"),
-        ("pyarrow", "PyArrow Columnar Storage / Almacenamiento Columnar Parquet"),
-        ("tifffile", "Tifffile NASA LOLA GeoTIFF Parser / Lector GeoTIFF LOLA"),
-        ("requests", "Requests HTTP Client / Cliente HTTP"),
-        ("fastapi", "FastAPI Asynchronous Framework / Framework Asincrono"),
-        ("uvicorn", "Uvicorn ASGI Web Server / Servidor Web ASGI"),
-        ("websockets", "WebSockets Real-Time Protocol / Protocolo Tiempo Real"),
-        ("pydantic", "Pydantic Schema Validation / Validacion de Esquemas"),
-        ("dotenv", "Python Dotenv Environment Loader / Gestor de Entorno"),
+        ("numpy", "NumPy Numerical Arrays"),
+        ("scipy", "SciPy Scientific Processing"),
+        ("pandas", "Pandas Ephemeris DataFrames"),
+        ("pyarrow", "PyArrow Columnar Storage"),
+        ("tifffile", "Tifffile NASA LOLA GeoTIFF Parser"),
+        ("requests", "Requests HTTP Client"),
+        ("fastapi", "FastAPI Asynchronous Framework"),
+        ("uvicorn", "Uvicorn ASGI Web Server"),
+        ("websockets", "WebSockets Real-Time Protocol"),
+        ("pydantic", "Pydantic Schema Validation"),
+        ("dotenv", "Python Dotenv Environment Loader"),
     ]
 
     all_passed = True
@@ -58,10 +52,9 @@ def verify_imports() -> bool:
 def verify_directories(root_dir: Path) -> bool:
     """
     English: Confirm that all modular architecture directories exist.
-    Espanol: Confirmar que todos los directorios de la arquitectura modular existen.
     """
     print("\n==============================================================================")
-    print("2. VERIFYING MODULAR DIRECTORIES / VERIFICANDO DIRECTORIOS MODULARES")
+    print("2. VERIFYING MODULAR DIRECTORIES")
     print("==============================================================================")
 
     required_dirs = [
@@ -79,9 +72,9 @@ def verify_directories(root_dir: Path) -> bool:
     for rel_path in required_dirs:
         dir_path = root_dir / rel_path
         if dir_path.is_dir():
-            print(f"[OK] Directory exists / Directorio existe: {rel_path}")
+            print(f"[OK] Directory exists: {rel_path}")
         else:
-            print(f"[FAIL] Directory missing / Directorio faltante: {rel_path}")
+            print(f"[FAIL] Directory missing: {rel_path}")
             all_passed = False
 
     return all_passed
@@ -90,10 +83,9 @@ def verify_directories(root_dir: Path) -> bool:
 def verify_config_files(root_dir: Path) -> bool:
     """
     English: Confirm presence of baseline configuration and tracking files.
-    Espanol: Confirmar presencia de archivos de configuracion base y seguimiento.
     """
     print("\n==============================================================================")
-    print("3. VERIFYING CONFIGURATION FILES / VERIFICANDO ARCHIVOS DE CONFIGURACION")
+    print("3. VERIFYING CONFIGURATION FILES")
     print("==============================================================================")
 
     required_files = [
@@ -107,9 +99,9 @@ def verify_config_files(root_dir: Path) -> bool:
     for rel_path in required_files:
         file_path = root_dir / rel_path
         if file_path.is_file():
-            print(f"[OK] File exists / Archivo existe: {rel_path}")
+            print(f"[OK] File exists: {rel_path}")
         else:
-            print(f"[FAIL] File missing / Archivo faltante: {rel_path}")
+            print(f"[FAIL] File missing: {rel_path}")
             all_passed = False
 
     return all_passed
@@ -118,10 +110,9 @@ def verify_config_files(root_dir: Path) -> bool:
 def verify_scientific_computation() -> bool:
     """
     English: Execute basic NumPy and SciPy operations to verify numerical pipeline.
-    Espanol: Ejecutar operaciones basicas de NumPy y SciPy para verificar el pipeline numerico.
     """
     print("\n==============================================================================")
-    print("4. VERIFYING NUMERICAL COMPUTATION / VERIFICANDO COMPUTO NUMERICO")
+    print("4. VERIFYING NUMERICAL COMPUTATION")
     print("==============================================================================")
 
     try:
@@ -151,10 +142,10 @@ def verify_scientific_computation() -> bool:
 
         mean_slope = float(np.mean(slope))
         print(f"[OK] Scientific pipeline functional. Mean test slope: {mean_slope:.2f} deg")
-        print(f"[OK] Pipeline cientifico funcional. Pendiente promedio de prueba: {mean_slope:.2f} deg")
+        print(f"[OK] Scientific pipeline functional. Mean test slope: {mean_slope:.2f} deg")
         return True
     except Exception as exc:
-        print(f"[FAIL] Numerical verification error / Error en verificacion numerica: {exc}")
+        print(f"[FAIL] Numerical verification error: {exc}")
         return False
 
 
@@ -167,8 +158,8 @@ def main():
 
     print("==============================================================================")
     print("LUNAR LANDING SITE NAVIGATOR - SMOKE TEST SUITE")
-    print("SUITE DE PRUEBAS DE HUMO - LUNAR LANDING SITE NAVIGATOR")
-    print(f"Workspace / Espacio de Trabajo: {root_dir}")
+    print("LUNAR LANDING SITE NAVIGATOR - SMOKE TEST SUITE")
+    print(f"Workspace: {root_dir}")
     print("==============================================================================\n")
 
     imports_ok = verify_imports()
@@ -177,17 +168,17 @@ def main():
     science_ok = verify_scientific_computation()
 
     print("\n==============================================================================")
-    print("SMOKE TEST SUMMARY / RESUMEN DE PRUEBAS DE HUMO")
+    print("SMOKE TEST SUMMARY")
     print("==============================================================================")
 
     all_passed = imports_ok and dirs_ok and configs_ok and science_ok
     if all_passed:
-        print("[PASS] ALL SYSTEMS OPERATIONAL / TODOS LOS SISTEMAS OPERATIVOS")
+        print("[PASS] ALL SYSTEMS OPERATIONAL")
         print("Ready to proceed to Phase 2: NASA Data Ingestion.")
         print("Listo para avanzar a la Fase 2: Ingesta de Datos de la NASA.")
         sys.exit(0)
     else:
-        print("[FAIL] ONE OR MORE CHECKS FAILED / UNA O MAS PRUEBAS FALLARON")
+        print("[FAIL] ONE OR MORE CHECKS FAILED")
         sys.exit(1)
 
 

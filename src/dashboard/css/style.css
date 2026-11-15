@@ -237,7 +237,7 @@ svg.icon { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-w
 .site-cta { display: none; grid-column: 1 / -1; }
 .site-card.active .site-cta { display: block; }
 
-/* Landing zones / Zonas de alunizaje */
+/* Landing zones */
 .zone-row {
   display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
   padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid transparent;

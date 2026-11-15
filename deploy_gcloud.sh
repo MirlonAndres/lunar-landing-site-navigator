@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # ONE-CLICK GOOGLE CLOUD RUN DEPLOYMENT SCRIPT
-# Script de Despliegue Automatizado en Google Cloud Run
-# NASA Space Apps Challenge 2026 - Equipo 01 (eq01)
+# NASA Space Apps Challenge 2026 - Team 01 (eq01)
 # ==============================================================================
 
 set -e

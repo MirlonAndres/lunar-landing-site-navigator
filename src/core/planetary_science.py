@@ -3,19 +3,12 @@ Multi-Layer Lunar Planetary Science Module: Diviner Thermal and LEND ISRU Models
 Modulo Cientifico Planetario Lunar Multicapa: Modelos Termicos Diviner e ISRU LEND
 NASA Space Apps Challenge 2026 - Lunar Landing Site Navigator
 
-English:
 Provides physical models for:
 1. LRO Diviner Lunar Radiometer Experiment (DLRE) bolometric surface temperature.
    Determines cryogenic cold traps (T < 110K for H2O ice, T < 54K for super-volatiles).
 2. LRO Lunar Exploration Neutron Detector (LEND) epithermal neutron flux suppression.
    Computes Water Equivalent Hydrogen (WEH wt%) and In-Situ Resource Utilization (ISRU) scores.
 
-Espanol:
-Proporciona modelos fisicos para:
-1. Temperatura bolometrica superficial del LRO Diviner (DLRE).
-   Determina trampas frias criogenicas (T < 110K para hielo de H2O, T < 54K para super-volatiles).
-2. Supresion de flujo de neutrones epitermicos del LRO LEND.
-   Calcula hidrogeno equivalente a agua (WEH % en peso) y puntajes de utilizacion de recursos (ISRU).
 """
 
 from dataclasses import dataclass
@@ -38,8 +31,6 @@ SUPER_VOLATILE_TEMP_K = 54.0          # Trapping of CO2, NH3, CH4 / Atrapamiento
 @dataclass(frozen=True)
 class ThermalState:
     """
-    English: Result of thermal surface temperature simulation.
-    Espanol: Resultado de la simulacion de temperatura termica superficial.
     """
     surface_temp_k: float
     is_permanently_shadowed: bool
@@ -51,8 +42,6 @@ class ThermalState:
 @dataclass(frozen=True)
 class ISRUResourceState:
     """
-    English: Result of volatile water-ice and ISRU evaluation.
-    Espanol: Resultado de la evaluacion de hielo de agua y recursos ISRU.
     """
     water_equivalent_hydrogen_wt_percent: float
     isru_potential_score: float
@@ -62,8 +51,6 @@ class ISRUResourceState:
 
 class DivinerThermalModel:
     """
-    English: Simulates lunar surface temperature based on LRO Diviner physics.
-    Espanol: Simula temperatura superficial lunar basada en la fisica de LRO Diviner.
     """
 
     @staticmethod
@@ -75,15 +62,10 @@ class DivinerThermalModel:
         is_terrain_shadowed: bool,
     ) -> ThermalState:
         """
-        English:
         Compute bolometric surface temperature using radiative equilibrium.
         If shadowed, temperature is governed by infrared reradiation from crater walls (40K - 100K).
         If illuminated, temperature follows Stefan-Boltzmann law with local incidence angle.
 
-        Espanol:
-        Calcula la temperatura bolometrica superficial usando equilibrio radiativo.
-        Si esta en sombra, la temperatura depende de reradiacion infrarroja de laderas (40K - 100K).
-        Si esta iluminada, sigue la ley de Stefan-Boltzmann con angulo de incidencia local.
         """
         if is_terrain_shadowed or solar_elevation_deg <= 0.0:
             # Permanently Shadowed Region (PSR) thermal balance
@@ -135,8 +117,6 @@ class DivinerThermalModel:
 
 class LENDVolatileResourceModel:
     """
-    English: Models epithermal neutron suppression and Water Equivalent Hydrogen (WEH).
-    Espanol: Modela la supresion de neutrones epitermicos y el hidrogeno equivalente a agua (WEH).
     """
 
     @staticmethod
@@ -146,13 +126,9 @@ class LENDVolatileResourceModel:
         proximity_to_psr_km: float,
     ) -> ISRUResourceState:
         """
-        English:
         Computes Water Equivalent Hydrogen (wt%) and ISRU viability score [0 to 100].
         Cold traps with low slope provide maximum extraction feasibility.
 
-        Espanol:
-        Calcula el hidrogeno equivalente a agua (% en peso) y puntaje de viabilidad ISRU [0 a 100].
-        Las trampas frias con baja pendiente ofrecen la maxima viabilidad de extraccion.
         """
         if thermal_state.is_super_volatile_stable:
             weh_wt = 1.25 + 0.35 * max(0.0, 1.0 - (proximity_to_psr_km / 2.0))

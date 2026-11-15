@@ -3,17 +3,11 @@ Lunar Landing Site Navigator - Hardware-in-the-Loop ESP32 Cloud Emulator
 Emulador de Hardware ESP32 para el Broker en la Nube de la Hackathon
 NASA Space Apps Challenge 2026 - Equipo 01 (eq01)
 
-English:
 Emulates the physical ESP32-S3 robotic arm connecting to the official Google Cloud Run broker
 (fimee-esp32-hub-ahife23fha-tl.a.run.app) using official team credentials.
 Allows testing and presenting the "En vivo" (Live) mode and sensor teleoperation without
 requiring a physical microcontroller plugged in via USB.
 
-Espanol:
-Emula el brazo robotico fisico ESP32-S3 conectandose al broker oficial de Google Cloud Run
-(fimee-esp32-hub-ahife23fha-tl.a.run.app) con las credenciales oficiales del equipo.
-Permite probar y presentar el modo "En vivo" y la teleoperacion de sensores sin necesidad
-de tener un microcontrolador fisico conectado por USB.
 """
 
 import asyncio

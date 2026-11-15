@@ -1,17 +1,10 @@
 /**
  * Telemetry and Real-Time Hardware Relay Client
- * Cliente de Telemetria y Retransmision de Hardware en Tiempo Real
  * NASA Space Apps Challenge 2026 - Lunar Landing Site Navigator
  *
- * English:
  * Manages the WebSocket connection to the FastAPI backend, reports true ESP32
  * hardware presence (with 10 s staleness detection), and throttles outbound 5-DOF
  * servo commands to <= 16 Hz with trailing-edge flush so slider dragging stays smooth.
- *
- * Espanol:
- * Administra la conexion WebSocket con el servidor FastAPI, informa la presencia
- * real del ESP32 (con caducidad a los 10 s) y limita el envio de comandos de los 5
- * servos a <= 16 Hz con envio final garantizado para un arrastre fluido.
  */
 
 class TelemetryClient {

@@ -3,7 +3,6 @@ Artemis Candidate Sites Multi-Layer Planetary Science Synthesis Script
 Script de Sintesis Multicapa de Ciencia Planetaria para Sitios Artemis
 NASA Space Apps Challenge 2026
 
-English:
 Synthesizes NASA planetary datasets across all 4 candidate landing sites:
 - LRO LOLA Topography (Elevation & Slope Hazard)
 - NASA JPL Horizons Ephemerides (Solar Power & Earth DTE Communications)
@@ -11,13 +10,6 @@ Synthesizes NASA planetary datasets across all 4 candidate landing sites:
 - LRO LEND (Water Equivalent Hydrogen wt% & ISRU Mining Viability)
 Exports consolidated Parquet dataset to data/processed/.
 
-Espanol:
-Sintetiza conjuntos de datos planetarios de la NASA en los 4 sitios candidatos:
-- Topografia LRO LOLA (Altimetria y Riesgo de Pendiente)
-- Efemerides NASA JPL Horizons (Energia Solar y Telecomunicaciones DTE)
-- LRO Diviner DLRE (Temperatura Criogenica Superficial y Trampas Frias)
-- LRO LEND (Hidrogeno Equivalente a Agua % peso y Viabilidad Minera ISRU)
-Exporta conjunto de datos Parquet consolidado a data/processed/.
 """
 
 import sys
@@ -38,7 +30,6 @@ from src.core.planetary_science import (
 def synthesize_all_sites() -> pd.DataFrame:
     """
     English: Evaluate and compare all 4 candidate Artemis landing sites.
-    Espanol: Evaluar y comparar los 4 sitios candidatos de alunizaje de Artemis.
     """
     sites_data = [
         {
@@ -133,7 +124,7 @@ def synthesize_all_sites() -> pd.DataFrame:
         )
 
         # Composite Landing Suitability Index (0 to 100)
-        # Indice de Idoneidad Compuesto para Alunizaje (0 a 100)
+        # Composite Landing Suitability Score (0 to 100)
         # Weights: Slope (30%), Solar (30%), DTE (20%), ISRU (20%)
         # Pesos: Pendiente (30%), Solar (30%), DTE (20%), ISRU (20%)
         slope_score = max(0.0, 100.0 - (s["mean_slope_deg"] / 15.0) * 100.0)
@@ -169,19 +160,19 @@ def synthesize_all_sites() -> pd.DataFrame:
         }
         records.append(rec)
 
-        print(f"SITE / SITIO: {s['name_en']}")
-        print(f"  Coordinates / Coordenadas: Lat {s['latitude_deg']:.3f} deg, Lon {s['longitude_deg']:.3f} deg")
-        print(f"  Elevation / Elevacion: {s['elevation_m']:.1f} m | Mean Slope / Pendiente Media: {s['mean_slope_deg']:.1f} deg")
-        print(f"  Solar Illumination / Iluminacion Solar: {s['sun_illumination_pct']:.2f}% | Earth DTE / Enlace DTE: {s['earth_dte_pct']:.2f}%")
-        print(f"  Diviner Surface Temp / Temp Diviner: {thermal.surface_temp_k:.1f} K ({thermal.thermal_classification})")
-        print(f"  LEND WEH Hydrogen / Hidrogeno WEH: {isru.water_equivalent_hydrogen_wt_percent:.3f} wt% | ISRU Score: {isru.isru_potential_score:.1f}/100")
-        print(f"  COMPOSITE SUITABILITY SCORE / INDICE DE IDONEIDAD: {composite_score:.2f}/100")
+        print(f"SITE: {s['name_en']}")
+        print(f"  Coordinates: Lat {s['latitude_deg']:.3f} deg, Lon {s['longitude_deg']:.3f} deg")
+        print(f"  Elevation: {s['elevation_m']:.1f} m | Mean Slope: {s['mean_slope_deg']:.1f} deg")
+        print(f"  Solar Illumination: {s['sun_illumination_pct']:.2f}% | Earth DTE: {s['earth_dte_pct']:.2f}%")
+        print(f"  Diviner Surface Temp: {thermal.surface_temp_k:.1f} K ({thermal.thermal_classification})")
+        print(f"  LEND WEH Hydrogen: {isru.water_equivalent_hydrogen_wt_percent:.3f} wt% | ISRU Score: {isru.isru_potential_score:.1f}/100")
+        print(f"  COMPOSITE SUITABILITY SCORE: {composite_score:.2f}/100")
         print("------------------------------------------------------------------------------")
 
     df_result = pd.DataFrame(records)
     out_path = REPO_ROOT / "data" / "processed" / "artemis_sites_planetary_synthesis.parquet"
     df_result.to_parquet(out_path, index=False)
-    print(f"\n[PASS] Saved multi-layer synthesis to / Guardado en: {out_path.name}")
+    print(f"\n[PASS] Saved multi-layer synthesis to: {out_path.name}")
     return df_result
 
 

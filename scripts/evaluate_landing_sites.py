@@ -1,19 +1,12 @@
 """
 Autonomous Lunar Landing Footprint Optimization and Safety Scoring Script
-Script de Optimizacion de Zonas de Contacto y Seguridad de Alunizaje Autonomo
 NASA Space Apps Challenge 2026
 
-English:
 Searches the NASA LRO LOLA digital elevation model for optimal 100m diameter
 circular landing footprints on Connecting Ridge. Applies multi-factor safety
 constraints (slope stability, roughness clearance, elevation bias).
 Exports top candidates to data/processed/optimal_landing_sites.json.
 
-Espanol:
-Busca en el modelo digital de elevacion LRO LOLA de la NASA las zonas circulares
-de aterrizaje de 100m de diametro optimas en Connecting Ridge. Aplica restricciones
-multicriterio de seguridad (estabilidad de pendiente, rugosidad, sesgo de elevacion).
-Exporta los mejores candidatos a data/processed/optimal_landing_sites.json.
 """
 
 import sys
@@ -37,8 +30,8 @@ def evaluate_candidate_touchdowns():
 
     print("==============================================================================")
     print("NASA LRO LOLA DEM - AUTONOMOUS LANDING SITE EVALUATION")
-    print("EVALUACION AUTONOMA DE SITIOS DE ALUNIZAJE - DEM LRO LOLA")
-    print(f"Target Region / Region Objetivo: Connecting Ridge (Shackleton Crater Rim)")
+    print("AUTONOMOUS LANDING SITE EVALUATION - NASA LRO LOLA DEM")
+    print(f"Target Region: Connecting Ridge (Shackleton Crater Rim)")
     print("==============================================================================\n")
 
     t0 = time.perf_counter()
@@ -55,7 +48,7 @@ def evaluate_candidate_touchdowns():
     roughness_m = analyzer.compute_roughness(elevation, window_size=5)
 
     # Initialize landing safety evaluator
-    # Inicializar evaluador de seguridad de alunizaje
+    # Initialize landing safety evaluator
     evaluator = LandingSafetyEvaluator(
         pixel_scale_m=5.0,
         max_safe_slope_deg=15.0,
@@ -78,21 +71,21 @@ def evaluate_candidate_touchdowns():
 
     t_end = time.perf_counter()
 
-    print(f"Evaluated 10.24M terrain cells in / Celdas evaluadas en: {t_end - t0:.3f} seconds\n")
-    print("TOP 5 OPTIMAL LANDING FOOTPRINTS / 5 MEJORES ZONAS DE ALUNIZAJE:")
+    print(f"Evaluated 10.24M terrain cells in: {t_end - t0:.3f} seconds\n")
+    print("TOP 5 OPTIMAL LANDING FOOTPRINTS:")
     print("==============================================================================")
 
     output_list = []
     for c in candidates:
         output_list.append(c.to_dict())
         print(f"RANK #{c.rank}: {c.classification}")
-        print(f"  Pixel Coord / Coordenada Pixel: [{c.pixel_y}, {c.pixel_x}] (Rel: X={c.rel_x_km:.2f} km, Y={c.rel_y_km:.2f} km)")
-        print(f"  Elevation / Elevacion: {c.elevation_m:.1f} m")
-        print(f"  Max Slope in 100m Footprint / Pendiente Max en Huella: {c.max_slope_deg:.2f} deg (Mean: {c.mean_slope_deg:.2f} deg)")
-        print(f"  Mean Surface Roughness / Rugosidad Superficial Media: {c.mean_roughness_m:.3f} m")
-        print(f"  Slope Safety Score / Puntaje Pendiente: {c.slope_score:.1f}/100")
-        print(f"  Roughness Safety Score / Puntaje Rugosidad: {c.roughness_score:.1f}/100")
-        print(f"  COMPOSITE SAFETY SCORE / PUNTAJE COMPUESTO DE SEGURIDAD: {c.composite_safety_score:.2f}/100")
+        print(f"  Pixel Coord: [{c.pixel_y}, {c.pixel_x}] (Rel: X={c.rel_x_km:.2f} km, Y={c.rel_y_km:.2f} km)")
+        print(f"  Elevation: {c.elevation_m:.1f} m")
+        print(f"  Max Slope in 100m Footprint: {c.max_slope_deg:.2f} deg (Mean: {c.mean_slope_deg:.2f} deg)")
+        print(f"  Mean Surface Roughness: {c.mean_roughness_m:.3f} m")
+        print(f"  Slope Safety Score: {c.slope_score:.1f}/100")
+        print(f"  Roughness Safety Score: {c.roughness_score:.1f}/100")
+        print(f"  COMPOSITE SAFETY SCORE: {c.composite_safety_score:.2f}/100")
         print("------------------------------------------------------------------------------")
 
     # Export to JSON
@@ -100,7 +93,7 @@ def evaluate_candidate_touchdowns():
     with open(out_file, "w") as f:
         json.dump(output_list, f, indent=2)
 
-    print(f"\n[PASS] Saved candidate landing sites to / Guardado en: {out_file.name}")
+    print(f"\n[PASS] Saved candidate landing sites to: {out_file.name}")
     print("Ready for mission trajectory and teleoperation simulation in Milestone 3.3.")
 
 

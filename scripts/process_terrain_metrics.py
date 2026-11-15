@@ -3,7 +3,6 @@ Lunar Terrain Metrics Processing and Hazard Benchmark Script
 Script de Procesamiento de Metricas de Terreno Lunar y Benchmark de Peligros
 NASA Space Apps Challenge 2026
 
-English:
 Executes the scientific terrain analysis pipeline over NASA LRO LOLA DEM:
 - Calculates 2D spatial slope gradients and aspect angles.
 - Computes surface roughness via moving window standard deviation.
@@ -11,13 +10,6 @@ Executes the scientific terrain analysis pipeline over NASA LRO LOLA DEM:
 - Generates optimized low-resolution 3D heightmap for WebGL digital twin.
 - Measures computational execution benchmarks.
 
-Espanol:
-Ejecuta el pipeline cientifico de analisis de terreno sobre el DEM LRO LOLA de la NASA:
-- Calcula gradientes espaciales 2D de pendiente y angulos de orientacion (aspect).
-- Computa la rugosidad superficial mediante desviacion estandar en ventana movil.
-- Realiza clasificacion automatica de peligros de alunizaje en 3 niveles (Seguro / Precaucion / Peligro).
-- Genera mapa de alturas 3D de baja resolucion optimizado para el gemelo digital WebGL.
-- Mide benchmarks de tiempo de ejecucion computacional.
 """
 
 import sys
@@ -42,47 +34,47 @@ def process_dem_pipeline():
     print("==============================================================================")
     print("LUNAR TERRAIN SCIENTIFIC COMPUTATION PIPELINE")
     print("PIPELINE CIENTIFICO DE COMPUTO DE TERRENO LUNAR")
-    print(f"Input DEM / DEM de Entrada: {raw_dem_path.name}")
+    print(f"Input DEM: {raw_dem_path.name}")
     print("==============================================================================\n")
 
     t0 = time.perf_counter()
 
     # Step 1: Ingest GeoTIFF
     # Paso 1: Ingestar GeoTIFF
-    print("1. LOADING ELEVATION RASTER / CARGANDO RASTER DE ELEVACION...")
+    print("1. LOADING ELEVATION RASTER...")
     with tifffile.TiffFile(raw_dem_path) as tif:
         elevation = tif.pages[0].asarray()
     t_load = time.perf_counter()
-    print(f"Loaded shape / Dimension cargada: {elevation.shape} ({elevation.size:,} pixels) in {t_load - t0:.3f} s")
+    print(f"Loaded shape: {elevation.shape} ({elevation.size:,} pixels) in {t_load - t0:.3f} s")
 
     # Step 2: Initialize Analyzer and compute slope & aspect
     # Paso 2: Inicializar analizador y calcular pendiente y aspect
-    print("\n2. COMPUTING 2D SLOPE GRADIENTS / CALCULANDO GRADIENTES 2D DE PENDIENTE...")
+    print("\n2. COMPUTING 2D SLOPE GRADIENTS...")
     analyzer = TerrainAnalyzer(pixel_scale_m=5.0)
     slope_deg, aspect_deg = analyzer.compute_slope_and_aspect(elevation)
     t_slope = time.perf_counter()
-    print(f"Slope computation complete in / Calculo de pendiente en: {t_slope - t_load:.3f} s")
-    print(f"  Slope Range / Rango de Pendiente: {np.min(slope_deg):.2f} deg to / a {np.max(slope_deg):.2f} deg")
-    print(f"  Mean Slope / Pendiente Media: {np.mean(slope_deg):.2f} deg")
-    print(f"  Median Slope / Pendiente Mediana: {np.median(slope_deg):.2f} deg")
+    print(f"Slope computation complete in: {t_slope - t_load:.3f} s")
+    print(f"  Slope Range: {np.min(slope_deg):.2f} deg to / a {np.max(slope_deg):.2f} deg")
+    print(f"  Mean Slope: {np.mean(slope_deg):.2f} deg")
+    print(f"  Median Slope: {np.median(slope_deg):.2f} deg")
 
     # Step 3: Compute surface roughness
     # Paso 3: Calcular rugosidad superficial
-    print("\n3. COMPUTING SURFACE ROUGHNESS / CALCULANDO RUGOSIDAD SUPERFICIAL...")
+    print("\n3. COMPUTING SURFACE ROUGHNESS...")
     roughness_m = analyzer.compute_roughness(elevation, window_size=5)
     t_rough = time.perf_counter()
-    print(f"Roughness computation complete in / Calculo de rugosidad en: {t_rough - t_slope:.3f} s")
-    print(f"  Roughness Range / Rango de Rugosidad: {np.min(roughness_m):.3f} m to / a {np.max(roughness_m):.3f} m")
-    print(f"  Mean Roughness / Rugosidad Media: {np.mean(roughness_m):.3f} m")
+    print(f"Roughness computation complete in: {t_rough - t_slope:.3f} s")
+    print(f"  Roughness Range: {np.min(roughness_m):.3f} m to / a {np.max(roughness_m):.3f} m")
+    print(f"  Mean Roughness: {np.mean(roughness_m):.3f} m")
 
     # Step 4: Classify landing hazards
     # Paso 4: Clasificar riesgos de aterrizaje
-    print("\n4. CLASSIFYING LANDING HAZARDS / CLASIFICANDO PELIGROS DE ALUNIZAJE...")
+    print("\n4. CLASSIFYING LANDING HAZARDS...")
     hazard_map = analyzer.classify_hazard_zones(
         slope_deg, roughness_m, max_safe_slope=15.0, max_safe_roughness=0.30
     )
     t_hazard = time.perf_counter()
-    print(f"Hazard classification complete in / Clasificacion de peligros en: {t_hazard - t_rough:.3f} s")
+    print(f"Hazard classification complete in: {t_hazard - t_rough:.3f} s")
 
     total_pixels = hazard_map.size
     safe_pct = float(np.count_nonzero(hazard_map == 0) / total_pixels * 100.0)
@@ -95,12 +87,12 @@ def process_dem_pipeline():
 
     # Step 5: Downsample for real-time 3D WebGL Digital Twin
     # Paso 5: Submuestrear para Gemelo Digital 3D WebGL en tiempo real
-    print("\n5. DOWNSAMPLING FOR 3D WEBGL RENDERING / GENERANDO MALLA 3D REDUCIDA...")
+    print("\n5. DOWNSAMPLING FOR 3D WEBGL RENDERING...")
     target_dim = (256, 256)
     dem_lowres = analyzer.downsample_terrain(elevation, target_shape=target_dim)
     slope_lowres = analyzer.downsample_terrain(slope_deg, target_shape=target_dim)
     t_down = time.perf_counter()
-    print(f"Generated {target_dim[0]}x{target_dim[1]} low-res mesh in / Malla reducida generada en: {t_down - t_hazard:.3f} s")
+    print(f"Generated {target_dim[0]}x{target_dim[1]} low-res mesh in: {t_down - t_hazard:.3f} s")
 
     # Step 6: Export processed summary JSON
     # Paso 6: Exportar resumen procesado JSON
@@ -157,9 +149,9 @@ def process_dem_pipeline():
     with open(mesh_file, "w") as f:
         json.dump(mesh_export, f)
 
-    print(f"\n[PASS] Saved summary to / Guardado resumen en: {summary_file.name}")
+    print(f"\n[PASS] Saved summary to: {summary_file.name}")
     print(f"[PASS] Saved 3D mesh to / Guardada malla 3D en: {mesh_file.name}")
-    print(f"TOTAL PIPELINE BENCHMARK / BENCHMARK TOTAL: {t_down - t0:.3f} seconds for 10.24M elevation points!")
+    print(f"TOTAL PIPELINE BENCHMARK: {t_down - t0:.3f} seconds for 10.24M elevation points!")
     print("Ready for safety landing zone selection in Milestone 3.2.")
 
 

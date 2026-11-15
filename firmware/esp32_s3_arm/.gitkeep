@@ -1,5 +1,4 @@
 # ==============================================================================
 # FIRMWARE DIRECTORY / DIRECTORIO DE FIRMWARE
 # English: ESP32-S3 microcontroller source files, multi-threaded FreeRTOS tasks, and WebSocket client drivers.
-# Espanol: Codigo fuente para microcontrolador ESP32-S3, tareas multitarea FreeRTOS y controladores cliente WebSocket.
 # ==============================================================================

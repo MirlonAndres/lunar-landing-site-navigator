@@ -13,7 +13,7 @@
     "roughness_score": 94.3,
     "composite_safety_score": 92.71,
     "proximity_to_psr_km": 5.61,
-    "classification": "PRIME LANDING FOOTPRINT / ZONA OPTIMA DE ALUNIZAJE"
+    "classification": "PRIME LANDING FOOTPRINT"
   },
   {
     "rank": 2,
@@ -29,7 +29,7 @@
     "roughness_score": 86.5,
     "composite_safety_score": 92.57,
     "proximity_to_psr_km": 2.62,
-    "classification": "BACKUP TOUCHDOWN ZONE / ZONA DE RESERVA"
+    "classification": "BACKUP TOUCHDOWN ZONE"
   },
   {
     "rank": 3,
@@ -45,7 +45,7 @@
     "roughness_score": 82.0,
     "composite_safety_score": 91.22,
     "proximity_to_psr_km": 3.94,
-    "classification": "BACKUP TOUCHDOWN ZONE / ZONA DE RESERVA"
+    "classification": "BACKUP TOUCHDOWN ZONE"
   },
   {
     "rank": 4,
@@ -61,7 +61,7 @@
     "roughness_score": 100.0,
     "composite_safety_score": 91.17,
     "proximity_to_psr_km": 5.37,
-    "classification": "BACKUP TOUCHDOWN ZONE / ZONA DE RESERVA"
+    "classification": "BACKUP TOUCHDOWN ZONE"
   },
   {
     "rank": 5,
@@ -77,6 +77,6 @@
     "roughness_score": 92.4,
     "composite_safety_score": 88.49,
     "proximity_to_psr_km": 5.59,
-    "classification": "BACKUP TOUCHDOWN ZONE / ZONA DE RESERVA"
+    "classification": "BACKUP TOUCHDOWN ZONE"
   }
 ]

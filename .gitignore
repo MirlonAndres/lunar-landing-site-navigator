@@ -1,10 +1,9 @@
 # ==============================================================================
 # LUNAR LANDING NAVIGATOR - GITIGNORE RULES
-# REGLAS DE EXCLUSION GIT - LUNAR LANDING NAVIGATOR
-# NASA Space Apps Challenge 2026 / Desafio NASA Space Apps 2026
+# NASA Space Apps Challenge 2026 - Team 01 (eq01)
 # ==============================================================================
 
-# 1. Python Virtual Environments / Entornos Virtuales de Python
+# 1. Python Virtual Environments
 .venv/
 venv/
 env/
@@ -12,7 +11,7 @@ ENV/
 env.bak/
 venv.bak/
 
-# 2. Python Bytecode and Build Artifacts / Archivos de Compilacion y Cache Python
+# 2. Python Bytecode and Build Artifacts
 __pycache__/
 *.py[cod]
 *$py.class
@@ -35,8 +34,8 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-# 3. Environment Variables and Secrets / Variables de Entorno y Claves Secretas
-# Do not commit credentials to version control / No subir claves al control de versiones
+# 3. Environment Variables and Secrets
+# Do not commit credentials to version control
 .env
 .env.*
 !.env.example
@@ -44,23 +43,29 @@ secrets.h
 *secrets.h
 firmware/**/secrets.h
 
-# 4. Large Datasets and NASA Raw Binaries / Datos Masivos y Binarios Crudos de NASA
-# Files exceeding 10MB are excluded from Git / Archivos mayores a 10MB se excluyen de Git
+# 4. Large Datasets and Media Files Exceeding GitHub Limits (100MB)
 data/raw/*
 !data/raw/.gitkeep
-data/processed/*.tif
-data/processed/*.tiff
+*.tif
+*.tiff
+*.geotiff
+*.mp4
+*.mov
+*.avi
+*.mkv
 
-# 5. IDEs and Operating System Metadata / Configuracion de IDEs y Sistema Operativo
+# 5. IDE and Editor Configuration Files
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 .DS_Store
+Thumbs.db
 
-# 6. Embedded Firmware Build Outputs / Archivos de Compilacion de Microcontroladores
-firmware/**/build/
-firmware/**/*.hex
-firmware/**/*.elf
-firmware/**/*.bin
+# 6. Embedded Firmware Build Outputs
+firmware/**/.pio/
+firmware/**/.vscode/
+*.bin
+*.hex
+*.elf

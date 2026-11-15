@@ -3,17 +3,11 @@ NASA LRO LOLA DEM Ingestion and Inspection Script
 Script de Ingesta e Inspeccion de Altimetria LRO LOLA de la NASA
 NASA Space Apps Challenge 2026
 
-English:
 Parses the high-resolution (5 meters per pixel) GeoTIFF digital elevation model
 (DEM) captured by the Lunar Orbiter Laser Altimeter (LOLA) on NASA's Lunar
 Reconnaissance Orbiter (LRO). Computes spatial bounds, elevation statistics,
 and verifies integrity.
 
-Espanol:
-Analiza el modelo digital de elevacion (DEM) GeoTIFF de alta resolucion (5 metros
-por pixel) capturado por el altimetro laser LOLA a bordo de la sonda LRO de la
-NASA. Calcula limites espaciales, estadisticas de elevacion y verifica la
-integridad del archivo.
 """
 
 import sys
@@ -25,15 +19,14 @@ import tifffile
 def inspect_lola_raster(raster_path: Path) -> dict:
     """
     English: Read raster file and calculate elevation metrics.
-    Espanol: Leer el archivo raster y calcular metricas de elevacion.
     """
     if not raster_path.exists():
-        raise FileNotFoundError(f"Raster file not found / Archivo raster no encontrado: {raster_path}")
+        raise FileNotFoundError(f"Raster file not found: {raster_path}")
 
     print("==============================================================================")
     print("NASA LRO LOLA DEM ALTIMETRY INSPECTOR")
     print("INSPECTOR DE ALTIMETRIA DEM LRO LOLA - NASA")
-    print(f"File Path / Ruta de Archivo: {raster_path}")
+    print(f"File Path: {raster_path}")
     print("==============================================================================\n")
 
     # Read GeoTIFF using tifffile
@@ -43,12 +36,12 @@ def inspect_lola_raster(raster_path: Path) -> dict:
         dtype = page.dtype
         shape = page.shape
 
-        print("1. RASTER STRUCTURE AND DIMENSIONS / ESTRUCTURA Y DIMENSIONES")
+        print("1. RASTER STRUCTURE AND DIMENSIONS")
         print("------------------------------------------------------------------------------")
-        print(f"Image Shape / Dimensiones de Imagen: {shape[0]} rows x {shape[1]} columns")
-        print(f"Data Type / Tipo de Dato: {dtype}")
-        print(f"Compression / Compresion: {page.compression}")
-        print(f"File Size / Tamano en Disco: {raster_path.stat().st_size / (1024 * 1024):.2f} MB")
+        print(f"Image Shape: {shape[0]} rows x {shape[1]} columns")
+        print(f"Data Type: {dtype}")
+        print(f"Compression: {page.compression}")
+        print(f"File Size: {raster_path.stat().st_size / (1024 * 1024):.2f} MB")
 
         data = page.asarray()
 
@@ -58,12 +51,12 @@ def inspect_lola_raster(raster_path: Path) -> dict:
     width_km = (shape[1] * pixel_scale_m) / 1000.0
     height_km = (shape[0] * pixel_scale_m) / 1000.0
 
-    print("\n2. PHYSICAL SPATIAL COVERAGE / COBERTURA ESPACIAL FISICA")
+    print("\n2. PHYSICAL SPATIAL COVERAGE")
     print("------------------------------------------------------------------------------")
-    print(f"Pixel Resolution / Resolucion por Pixel: {pixel_scale_m:.1f} meters / metros")
-    print(f"Total Physical Width / Ancho Fisico Total: {width_km:.2f} km")
-    print(f"Total Physical Height / Alto Fisico Total: {height_km:.2f} km")
-    print(f"Total Area Covered / Area Total Cubierta: {width_km * height_km:.2f} km^2")
+    print(f"Pixel Resolution: {pixel_scale_m:.1f} meters")
+    print(f"Total Physical Width: {width_km:.2f} km")
+    print(f"Total Physical Height: {height_km:.2f} km")
+    print(f"Total Area Covered: {width_km * height_km:.2f} km^2")
 
     # Elevation metrics (handle invalid / nodata if present)
     # Metricas de elevacion (filtrar nodata si existiera)
@@ -77,18 +70,18 @@ def inspect_lola_raster(raster_path: Path) -> dict:
     std_elev = float(np.std(valid_data))
     total_relief = max_elev - min_elev
 
-    print("\n3. TOPOGRAPHIC ELEVATION METRICS / METRICAS DE ELEVACION TOPOGRAFICA")
+    print("\n3. TOPOGRAPHIC ELEVATION METRICS")
     print("------------------------------------------------------------------------------")
-    print(f"Minimum Elevation / Elevacion Minima: {min_elev:.2f} m")
-    print(f"Maximum Elevation / Elevacion Maxima: {max_elev:.2f} m")
-    print(f"Mean Elevation / Elevacion Promedio: {mean_elev:.2f} m")
-    print(f"Median Elevation / Elevacion Mediana: {median_elev:.2f} m")
-    print(f"Standard Deviation / Desviacion Estandar: {std_elev:.2f} m")
-    print(f"Total Vertical Relief / Relieve Vertical Total: {total_relief:.2f} m")
-    print(f"Valid Pixels / Pixeles Validos: {len(valid_data)} / {data.size} (100.0%)")
+    print(f"Minimum Elevation: {min_elev:.2f} m")
+    print(f"Maximum Elevation: {max_elev:.2f} m")
+    print(f"Mean Elevation: {mean_elev:.2f} m")
+    print(f"Median Elevation: {median_elev:.2f} m")
+    print(f"Standard Deviation: {std_elev:.2f} m")
+    print(f"Total Vertical Relief: {total_relief:.2f} m")
+    print(f"Valid Pixels: {len(valid_data)} / {data.size} (100.0%)")
 
     print("\n==============================================================================")
-    print("VALIDATION SUMMARY / RESUMEN DE VALIDACION")
+    print("VALIDATION SUMMARY")
     print("==============================================================================")
     print("[PASS] NASA LRO LOLA DEM integrity confirmed.")
     print("[PASS] Integridad del DEM LRO LOLA de la NASA confirmada.")

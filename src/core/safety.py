@@ -1,9 +1,7 @@
 """
 Multi-Criteria Lunar Landing Safety Evaluator and Footprint Optimizer
-Evaluador Multicriterio de Seguridad de Alunizaje y Optimizador de Zonas
 NASA Space Apps Challenge 2026 - Lunar Landing Site Navigator
 
-English:
 Provides autonomous landing safety scoring and candidate touchdown footprint
 search algorithms based on NASA landing engineering constraints:
 1. Slope stability: Hard rejection if max slope > 15.0 deg within 100m footprint.
@@ -11,13 +9,6 @@ search algorithms based on NASA landing engineering constraints:
 3. Illumination continuity: Solar photovoltaic energy score.
 4. ISRU scientific value: Proximity to Permanently Shadowed Region (PSR) cold traps.
 
-Espanol:
-Proporciona algoritmos de puntuacion de seguridad de alunizaje y busqueda de zonas
-de contacto optimas basados en restricciones de ingenieria de la NASA:
-1. Estabilidad de pendiente: Rechazo estricto si la pendiente > 15.0 deg en 100m.
-2. Tolerancia de rugosidad: Rechazo estricto si la rugosidad > 0.30m (riesgo de rocas).
-3. Continuidad de iluminacion: Puntaje de energia fotovoltaica solar.
-4. Valor cientifico ISRU: Proximidad a trampas frias en regiones en sombra permanente.
 """
 
 from dataclasses import dataclass, asdict
@@ -29,8 +20,6 @@ from scipy import ndimage
 @dataclass(frozen=True)
 class LandingSiteCandidate:
     """
-    English: Identified candidate touchdown zone with scientific safety metrics.
-    Espanol: Zona de contacto candidata identificada con metricas de seguridad cientifica.
     """
     rank: int
     pixel_y: int
@@ -53,8 +42,6 @@ class LandingSiteCandidate:
 
 class LandingSafetyEvaluator:
     """
-    English: Evaluates terrain cells and searches for optimal circular landing footprints.
-    Espanol: Evalua celdas de terreno y busca zonas circulares de alunizaje optimas.
     """
 
     def __init__(
@@ -81,8 +68,6 @@ class LandingSafetyEvaluator:
 
     def score_slope(self, slope_deg: float) -> float:
         """
-        English: Slope score [0 to 100]. Optimal <= 5 deg, linear decay to 15 deg.
-        Espanol: Puntaje de pendiente [0 a 100]. Optima <= 5 deg, decaimiento lineal a 15 deg.
         """
         if slope_deg > self.max_safe_slope:
             return 0.0
@@ -92,8 +77,6 @@ class LandingSafetyEvaluator:
 
     def score_roughness(self, roughness_m: float) -> float:
         """
-        English: Roughness score [0 to 100]. Optimal <= 0.10m, linear decay to 0.30m.
-        Espanol: Puntaje de rugosidad [0 a 100]. Optima <= 0.10m, decaimiento lineal a 0.30m.
         """
         if roughness_m > self.max_safe_roughness:
             return 0.0
@@ -111,13 +94,9 @@ class LandingSafetyEvaluator:
         min_distance_m: float = 300.0,
     ) -> List[LandingSiteCandidate]:
         """
-        English:
         Finds the top N discrete landing site footprints within the DEM.
         Applies a circular footprint kernel and suppresses duplicate nearby sites.
 
-        Espanol:
-        Encuentra las N mejores zonas discretas de alunizaje dentro del DEM.
-        Aplica un kernel circular de contacto y suprime candidatos cercanos duplicados.
         """
         radius_px = max(1, int(round(footprint_radius_m / self.pixel_scale_m)))
         min_dist_px = max(1, int(round(min_distance_m / self.pixel_scale_m)))
@@ -212,13 +191,12 @@ class LandingSafetyEvaluator:
                 roughness_score=round(site_rough_score, 1),
                 composite_safety_score=round(best_score, 2),
                 proximity_to_psr_km=round(dist_to_center_km, 2),
-                classification="PRIME LANDING FOOTPRINT / ZONA OPTIMA DE ALUNIZAJE" if rank_idx == 1 else "BACKUP TOUCHDOWN ZONE / ZONA DE RESERVA",
+                classification="PRIME LANDING FOOTPRINT" if rank_idx == 1 else "BACKUP TOUCHDOWN ZONE",
             )
             candidates.append(candidate)
 
             # Suppress region around this candidate to enforce spatial diversity
-            # Suprimir region alrededor del candidato para forzar diversidad espacial
-            y_min = max(0, py - min_dist_px)
+                        y_min = max(0, py - min_dist_px)
             y_max = min(h, py + min_dist_px + 1)
             x_min = max(0, px - min_dist_px)
             x_max = min(w, px + min_dist_px + 1)

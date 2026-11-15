@@ -217,7 +217,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   } finally {
     setTimeout(() => {
       loader.style.opacity = "0";
-      setTimeout(() => loader.classList.add("hide"), 600);
+      setTimeout(() => {
+        loader.classList.add("hide");
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get("view") === "surface") {
+          enterSurfaceView(() => {
+            twin.focusOnArm();
+          });
+        }
+      }, 600);
     }, 250);
   }
 

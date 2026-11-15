@@ -3,7 +3,6 @@ Terrain Illumination and Permanently Shadowed Region (PSR) Ray-Casting
 Trazado de Rayos de Iluminacion de Terreno y Regiones en Sombra Permanente (PSR)
 NASA Space Apps Challenge 2026 - Lunar Landing Site Navigator
 
-English:
 Computes, for every cell of the 256x256 LOLA heightmap (62.5 m/pixel), the terrain
 horizon angle along each azimuth by marching rays across the DEM. Two products:
   1. Mission illumination fraction: share of the 7-day JPL Horizons sun trajectory
@@ -11,16 +10,6 @@ horizon angle along each azimuth by marching rays across the DEM. Two products:
   2. PSR / cold-trap mask: cells whose horizon exceeds the maximum polar sun
      elevation (1.6 deg) at every azimuth -> never illuminated -> volatile ice traps.
 
-Espanol:
-Calcula, para cada celda de la malla LOLA de 256x256 (62.5 m/pixel), el angulo de
-horizonte del terreno en cada azimut marchando rayos sobre el DEM. Dos productos:
-  1. Fraccion de iluminacion de mision: proporcion de la trayectoria solar de 7 dias
-     (azimut y elevacion reales de JPL Horizons) en que la celda ve el centro del Sol.
-  2. Mascara PSR / trampa fria: celdas cuyo horizonte supera la elevacion solar polar
-     maxima (1.6 grados) en todos los azimuts -> nunca iluminadas -> trampas de hielo.
-
-Convention / Convencion: azimuth clockwise from grid-up (row 0 = north edge),
-identical to the WebGL scene (north = -Z) for visual coherence.
 """
 
 import json
@@ -35,14 +24,13 @@ sys.path.insert(0, str(REPO_ROOT))
 
 PROCESSED = REPO_ROOT / "data" / "processed"
 PIXEL_M = 16000.0 / 256.0          # 62.5 m per heightmap cell / metros por celda
-MAX_STEPS = 128                    # Ray length: 8 km / Longitud del rayo: 8 km
+MAX_STEPS = 128                    # Ray length: 8 km: 8 km
 MAX_POLAR_SUN_ELEV_DEG = 1.6       # Max solar elevation at lunar south pole / Elevacion solar maxima
 
 
 def horizon_angle_map(heights: np.ndarray, azimuth_deg: float) -> np.ndarray:
     """
     English: Maximum terrain elevation angle (deg) seen from each cell toward azimuth.
-    Espanol: Angulo de elevacion maximo del terreno (grados) visto desde cada celda hacia el azimut.
     """
     rows, cols = heights.shape
     az = np.radians(azimuth_deg)
@@ -74,8 +62,8 @@ def main():
     traj = timeline["sample_trajectory"]
 
     print("==============================================================================")
-    print("TERRAIN ILLUMINATION RAY-CASTING / TRAZADO DE RAYOS DE ILUMINACION")
-    print(f"Grid / Malla: {heights.shape} @ {PIXEL_M:.1f} m/px | Sun samples / Muestras solares: {len(traj)}")
+    print("TERRAIN ILLUMINATION RAY-CASTING")
+    print(f"Grid: {heights.shape} @ {PIXEL_M:.1f} m/px | Sun samples: {len(traj)}")
     print("==============================================================================")
 
     # 1. Mission illumination over real 7-day trajectory (2-degree azimuth bins cache)
@@ -98,10 +86,10 @@ def main():
     psr = ~ever_lit
 
     elapsed = time.perf_counter() - t0
-    print(f"Mean mission illumination / Iluminacion media: {illum_frac.mean() * 100:.1f}%")
+    print(f"Mean mission illumination: {illum_frac.mean() * 100:.1f}%")
     print(f"Cells lit > 80% / Celdas con > 80% luz: {(illum_frac > 0.8).mean() * 100:.2f}%")
-    print(f"PSR cold-trap area / Area de trampas frias PSR: {psr.mean() * 256:.2f} km2 ({psr.mean() * 100:.2f}%)")
-    print(f"Elapsed / Tiempo: {elapsed:.2f} s")
+    print(f"PSR cold-trap area: {psr.mean() * 256:.2f} km2 ({psr.mean() * 100:.2f}%)")
+    print(f"Elapsed: {elapsed:.2f} s")
 
     out = {
         "rows": int(heights.shape[0]),
@@ -116,7 +104,7 @@ def main():
     out_path = PROCESSED / "terrain_illumination.json"
     with open(out_path, "w") as f:
         json.dump(out, f, separators=(",", ":"))
-    print(f"[PASS] Saved / Guardado: {out_path.name}")
+    print(f"[PASS] Saved: {out_path.name}")
 
 
 if __name__ == "__main__":

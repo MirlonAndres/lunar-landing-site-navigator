@@ -1,5 +1,4 @@
 # ==============================================================================
 # DATA PROCESSED DIRECTORY / DIRECTORIO DE DATOS PROCESADOS
 # English: Storage for optimized, columnar data files (Parquet, binary arrays) for real-time query acceleration.
-# Espanol: Almacenamiento para archivos de datos optimizados en columnas (Parquet, arrays binarios) para acelerar consultas en tiempo real.
 # ==============================================================================

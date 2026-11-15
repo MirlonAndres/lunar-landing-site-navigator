@@ -3,19 +3,12 @@ Mission Power, Articulated Sun-Tracking, and DTE Communication Simulator
 Simulador de Potencia de Mision, Seguimiento Solar Articulado y Enlace DTE
 NASA Space Apps Challenge 2026 - Lunar Landing Site Navigator
 
-English:
 Simulates:
 1. Solar photovoltaic generation comparing fixed vs. 5-DOF articulated sun-tracking array.
 2. Battery state-of-charge (SoC %) and thermal survival heater loads during eclipses.
 3. Direct-to-Earth (DTE) communication visibility passes and radio blackout windows.
 4. Telemetry integration schema for physical ESP32-S3 DHT22 and solar ADC sensors.
 
-Espanol:
-Simula:
-1. Generacion fotovoltaica comparando panel fijo frente a panel articulado con seguimiento solar 5-DOF.
-2. Estado de carga de bateria (SoC %) y consumo de calentadores termicos en eclipses.
-3. Pases de comunicacion directa a la Tierra (DTE) y ventanas de silencio de radio (blackouts).
-4. Esquema de integracion de telemetria fisica para sensores DHT22 y ADC solar del ESP32-S3.
 """
 
 from dataclasses import dataclass, asdict
@@ -27,8 +20,6 @@ import pandas as pd
 @dataclass(frozen=True)
 class CommunicationWindow:
     """
-    English: Direct-to-Earth (DTE) contact pass or radio blackout interval.
-    Espanol: Intervalo de pase de contacto directo a la Tierra (DTE) o silencio de radio.
     """
     window_id: int
     window_type: str  # "DTE_CONTACT" or "RADIO_BLACKOUT"
@@ -42,8 +33,6 @@ class CommunicationWindow:
 @dataclass(frozen=True)
 class MissionPowerProfile:
     """
-    English: Consolidated summary of simulated mission energy performance.
-    Espanol: Resumen consolidado del rendimiento energetico simulado de mision.
     """
     total_simulation_hours: float
     fixed_panel_energy_wh: float
@@ -59,8 +48,6 @@ class MissionPowerProfile:
 
 class MissionSimulator:
     """
-    English: Core computational engine for solar power, battery thermal loads, and DTE communications.
-    Espanol: Motor de calculo central para potencia solar, carga termica de bateria y enlaces DTE.
     """
 
     def __init__(
@@ -88,13 +75,9 @@ class MissionSimulator:
         self, ephemeris_df: pd.DataFrame
     ) -> Tuple[pd.DataFrame, MissionPowerProfile, List[CommunicationWindow]]:
         """
-        English:
         Run time-series simulation over NASA JPL Horizons ephemerides.
         Computes power generation, battery SoC trajectory, and communication windows.
 
-        Espanol:
-        Ejecuta la simulacion temporal sobre las efemerides de NASA JPL Horizons.
-        Calcula generacion de potencia, trayectoria de SoC de bateria y ventanas de comunicacion.
         """
         df = ephemeris_df.copy()
         n_steps = len(df)
@@ -211,8 +194,6 @@ class MissionSimulator:
 
     def _detect_communication_windows(self, df: pd.DataFrame) -> List[CommunicationWindow]:
         """
-        English: Segment timeline into continuous contact passes and blackout windows.
-        Espanol: Segmentar la linea de tiempo en pases de contacto y silencios continuos.
         """
         windows: List[CommunicationWindow] = []
         is_contact_col = "earth_visible_true" if "earth_visible_true" in df.columns else "earth_visible"

@@ -3,7 +3,6 @@ Hackathon Official Google Cloud Run Broker Relay Bridge
 Puente de Retransmision con el Broker Oficial de Google Cloud de la Hackathon
 NASA Space Apps Challenge 2026 - Lunar Landing Site Navigator
 
-English:
 Maintains an asynchronous client connection to the official hackathon cloud broker
 (fimee-esp32-hub on Google Cloud Run - Santiago) for Equipo 01 ('eq01').
 Protocol (official guide, section 5):
@@ -12,12 +11,6 @@ Protocol (official guide, section 5):
   web -> broker : {"t":"cmd","id":"eq01","cid":...,"k":"arm","v":{"a":[5 angles],"m":mode}}
 Unified telemetry schema inside "d": solar_v, temp, hum, angles, bat.
 
-Espanol:
-Mantiene una conexion asincrona como cliente hacia el broker oficial en la nube de la
-hackathon (fimee-esp32-hub en Google Cloud Run - Santiago) para el Equipo 01 ('eq01').
-Protocolo (guia oficial, seccion 5): autenticacion "auth", recepcion de "estado",
-"presencia", "tel" y "ack", y envio de comandos "cmd" con actuador "arm".
-Esquema unificado de telemetria dentro de "d": solar_v, temp, hum, angles, bat.
 """
 
 import asyncio
@@ -40,8 +33,6 @@ WEB_KEY = os.getenv("HACKATHON_WEB_KEY", "YOUR_WEB_KEY_HERE")
 
 def map_device_fields(d: Dict[str, Any]) -> Dict[str, Any]:
     """
-    English: Map the unified firmware schema ("d") to the dashboard telemetry schema.
-    Espanol: Traduce el esquema unificado del firmware ("d") al esquema del panel.
     """
     out: Dict[str, Any] = {}
 
@@ -78,8 +69,6 @@ def map_device_fields(d: Dict[str, Any]) -> Dict[str, Any]:
 
 class HackathonCloudBridge:
     """
-    English: Background bridge client synchronizing official cloud broker with local digital twin.
-    Espanol: Cliente puente en segundo plano que sincroniza el broker de la nube con el gemelo digital local.
     """
 
     def __init__(self, relay_manager):
@@ -96,8 +85,6 @@ class HackathonCloudBridge:
 
     async def start(self):
         """
-        English: Start asynchronous connection loop with resilient auto-reconnect.
-        Espanol: Iniciar bucle de conexion asincrona con reconexion automatica resiliente.
         """
         self.is_running = True
         logger.info(f"Starting Hackathon Cloud Bridge for team {EQUIPO_ID}...")
@@ -125,8 +112,6 @@ class HackathonCloudBridge:
 
     async def _process_cloud_message(self, raw_message: str):
         """
-        English: Parse incoming packet from cloud and forward to local digital twin.
-        Espanol: Procesar paquete entrante de la nube y reenviar al gemelo digital local.
         """
         try:
             msg = json.loads(raw_message)
@@ -173,8 +158,6 @@ class HackathonCloudBridge:
 
     async def dispatch_arm_command(self, angles, mode: str = "MANUAL") -> bool:
         """
-        English: Send 5-DOF arm command through the cloud broker so the ESP32 receives it anywhere.
-        Espanol: Envia el comando del brazo de 5 ejes por el broker para que el ESP32 lo reciba donde sea.
         """
         if not self.is_connected or self.ws_client is None:
             return False

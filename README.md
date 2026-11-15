@@ -20,14 +20,22 @@ Explore the interactive Mission Control dashboard running in production on Googl
 
 ---
 
-## 📸 System Showcase: Physical Hardware & WebGL Digital Twin
+## 📸 System Showcase: Physical Hardware, CAD & WebGL Digital Twin
 
-| Physical 3D-Printed Robotic Arm (HIL) | WebGL 3D Mission Control Digital Twin |
+| Physical 3D-Printed Robotic Arm (HIL) | SolidWorks 3D CAD Model (`RAOJ-V2`) |
 |:---:|:---:|
-| ![Physical Arm](assets/hardware/robotic_arm_physical.png) | ![Mission Control UI](assets/ui/mission_control_dashboard.png) |
-| **Physical 5-DOF Articulated Actuator**<br>ESP32-S3 MCU + PCA9685 I2C 12-bit PWM Controller<br>Solar Cell End-Effector with ADC Monitoring | **Three.js Digital Twin & Teleoperation**<br>LRO LOLA 256×256 Terrain Mesh & Ray-Cast Shadows<br>5-Ray Solar Alignment Frustum & Real-Time Joint Telemetry |
+| ![Physical Arm](assets/hardware/robotic_arm_physical.png) | ![CAD Model](assets/models/cad_3d/CAD%20Model.png) |
+| **Physical 5-DOF Articulated Actuator**<br>ESP32-S3 MCU + PCA9685 I2C 12-bit PWM Driver<br>Photovoltaic Sensor End-Effector with ADC | **SolidWorks 3D Printable Assembly**<br>Complete CAD Assemblies & STL Files<br>Matched Anatomical Kinematic Angles |
 
-> 📁 **3D CAD Printable Models Included:** Full 3D printable STL files (`.stl`) for the robotic arm assembly, motor brackets, hinge unions, and turntable base are available in [`assets/models/cad_3d/`](assets/models/cad_3d/).
+### WebGL 3D Mission Control Digital Twin (Moon Globe View)
+![Mission Control Globe](assets/ui/mission_control_dashboard.png)
+*Interactive Three.js 3D Moon Digital Twin showing candidate Artemis landing sites (Connecting Ridge, North Peak, Malapert Mountain, Faustini Rim A) with real-time ESP32 teleoperation controls.*
+
+### 3D Polar Terrain & Active Solar Frustum View (Lander Surface View)
+![Mission Control Surface](assets/ui/mission_control_surface_view.png)
+*Lander touchdown footprint at Safe Zone #1 (+1,304 m, 2.7° slope) on Connecting Ridge, featuring active 5-ray solar tracking alignment and dynamic polar crater shadows.*
+
+> 📁 **3D CAD Printable Models Included:** Full SolidWorks CAD parts (`.SLDPRT`, `.SLDASM`) and 3D printable STL files (`.stl`) for the robotic arm assembly, motor brackets, hinge unions, and turntable base are available in [`assets/models/cad_3d/`](assets/models/cad_3d/).
 
 ---
 

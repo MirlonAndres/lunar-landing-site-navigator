@@ -3,7 +3,6 @@ High-Frequency Asynchronous REST API and Real-Time Teleoperation WebSocket Serve
 Servidor de API REST Asincrona de Alta Frecuencia y WebSocket de Teleoperacion
 NASA Space Apps Challenge 2026 - Lunar Landing Site Navigator
 
-English:
 Provides mission control services:
 1. REST endpoints for multi-site Artemis portfolio, 3D terrain meshes, landing safety scores,
    and solar power generation / DTE communication timelines.
@@ -11,13 +10,6 @@ Provides mission control services:
    physical DHT22 environmental sensor, and solar panel voltage telemetry.
 3. Dual-mode support for local direct network and hackathon Google Cloud broker.
 
-Espanol:
-Proporciona servicios de control de mision:
-1. Puntos de enlace REST para el portafolio multi-sitio Artemis, mallas 3D de terreno, puntajes
-   de seguridad de alunizaje y cronogramas de potencia solar / telecomunicaciones DTE.
-2. Retransmision WebSocket bidireccional de baja latencia (<100ms) para el brazo robotico ESP32-S3,
-   sensor ambiental fisico DHT22 y telemetria de voltaje de panel solar.
-3. Soporte de modo dual para red local directa y broker en la nube Google Cloud de la hackathon.
 """
 
 import json
@@ -49,8 +41,6 @@ DASHBOARD_DIR = REPO_ROOT / "src" / "dashboard"
 
 class TelemetryPayload(BaseModel):
     """
-    English: Real-time telemetry payload from ESP32-S3 robotic arm and physical sensors.
-    Espanol: Paquete de telemetria en tiempo real desde el brazo robotico ESP32-S3 y sensores fisicos.
     """
     device: str = Field(default="esp32_s3_arm", description="Device identifier / Identificador del dispositivo")
     timestamp: float = Field(default_factory=time.time, description="Epoch timestamp / Marca de tiempo")
@@ -65,8 +55,6 @@ class TelemetryPayload(BaseModel):
 
 class ArmCommand(BaseModel):
     """
-    English: Actuator positioning command sent to ESP32-S3 arm.
-    Espanol: Comando de posicionamiento de actuador enviado al brazo ESP32-S3.
     """
     target_angles: List[float] = Field(description="5 servo angles in degrees [0 to 180]")
     mode: Optional[str] = Field(default="MANUAL_TELEOP", description="Control mode / Modo de control")
@@ -79,8 +67,6 @@ class ArmCommand(BaseModel):
 
 class TeleopRelayManager:
     """
-    English: Thread-safe connection broker managing WebSocket dashboards and hardware nodes.
-    Espanol: Gestor de conexiones seguro que administra paneles web y nodos de hardware.
     """
 
     def __init__(self):
@@ -138,8 +124,6 @@ class TeleopRelayManager:
 
     async def dispatch_command_to_hardware(self, angles: List[float], mode: str):
         """
-        English: Route an arm command to LAN hardware nodes AND the cloud broker.
-        Espanol: Enruta un comando del brazo a nodos LAN Y al broker en la nube.
         """
         payload_str = json.dumps({"t": "cmd", "k": "arm", "v": {"a": [int(round(a)) for a in angles], "m": mode}})
         to_remove = set()
@@ -162,8 +146,6 @@ TELEMETRY_STALE_SEC = 10.0
 
 def link_status() -> Dict[str, Any]:
     """
-    English: Real ESP32 link status (not the browser link). Data older than 10 s is stale.
-    Espanol: Estado real del enlace con el ESP32 (no del navegador). Datos de mas de 10 s caducan.
     """
     now = time.time()
     last = max(cloud_bridge.last_cloud_packet_time, relay_manager.last_local_packet_time)
@@ -201,8 +183,6 @@ async def link_status_loop():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    English: Lifecycle manager spawning background cloud relay bridge and link monitor.
-    Espanol: Gestor de ciclo de vida que inicia el puente con la nube y el monitor de enlace.
     """
     bridge_task = asyncio.create_task(cloud_bridge.start())
     status_task = asyncio.create_task(link_status_loop())
@@ -249,8 +229,6 @@ async def disable_dashboard_cache(request, call_next):
 @app.get("/api/health")
 async def get_health():
     """
-    English: System health, uptime, and active connection metrics.
-    Espanol: Estado de salud del sistema, tiempo activo y conexiones activas.
     """
     return {
         "status": "OPERATIONAL",
@@ -268,8 +246,6 @@ async def get_health():
 @app.get("/api/portfolio/sites")
 async def get_artemis_portfolio():
     """
-    English: Returns comparative multi-criteria evaluation of all 4 candidate Artemis landing sites.
-    Espanol: Retorna la evaluacion comparativa multicriterio de los 4 sitios candidatos de Artemis.
     """
     parquet_path = DATA_PROCESSED_DIR / "artemis_sites_planetary_synthesis.parquet"
     if not parquet_path.exists():
@@ -285,8 +261,6 @@ async def get_artemis_portfolio():
 @app.get("/api/terrain/metrics")
 async def get_terrain_metrics():
     """
-    English: Returns summary of digital elevation model geomorphometry (elevations, slopes, roughness, hazards).
-    Espanol: Retorna el resumen de geomorfometria del modelo digital de elevacion.
     """
     summary_path = DATA_PROCESSED_DIR / "terrain_metrics_summary.json"
     if not summary_path.exists():
@@ -300,8 +274,6 @@ async def get_terrain_metrics():
 @app.get("/api/terrain/mesh")
 async def get_terrain_3d_mesh():
     """
-    English: Returns downsampled 256x256 heightmap and slope matrix for 3D Three.js WebGL rendering.
-    Espanol: Retorna la malla reducida de 256x256 de alturas y pendientes para renderizado 3D en Three.js.
     """
     mesh_path = DATA_PROCESSED_DIR / "terrain_3d_mesh.json"
     if not mesh_path.exists():
@@ -315,8 +287,6 @@ async def get_terrain_3d_mesh():
 @app.get("/api/landing-zones")
 async def get_optimal_landing_zones():
     """
-    English: Returns top 5 optimal circular landing footprints on Connecting Ridge.
-    Espanol: Retorna las 5 mejores zonas de alunizaje circulares en Connecting Ridge.
     """
     sites_path = DATA_PROCESSED_DIR / "optimal_landing_sites.json"
     if not sites_path.exists():
@@ -333,8 +303,6 @@ async def get_optimal_landing_zones():
 @app.get("/api/mission/timeline")
 async def get_mission_timeline():
     """
-    English: Returns 7-day power generation profile, battery SoC, DTE contact passes, and blackout windows.
-    Espanol: Retorna el perfil de 7 dias de generacion electrica, SoC de bateria y pases de contacto DTE.
     """
     timeline_path = DATA_PROCESSED_DIR / "mission_timeline_simulation.json"
     if not timeline_path.exists():
@@ -348,8 +316,6 @@ async def get_mission_timeline():
 @app.get("/api/telemetry/latest")
 async def get_latest_telemetry():
     """
-    English: Returns snapshot of latest physical and simulated telemetry.
-    Espanol: Retorna la instantanea mas reciente de telemetria fisica y simulada.
     """
     return {**relay_manager.latest_telemetry, "link": link_status()}
 
@@ -357,8 +323,6 @@ async def get_latest_telemetry():
 @app.get("/api/terrain/illumination")
 async def get_terrain_illumination():
     """
-    English: Returns ray-cast mission illumination fraction and PSR cold-trap mask (256x256).
-    Espanol: Retorna la fraccion de iluminacion por trazado de rayos y la mascara PSR (256x256).
     """
     path = DATA_PROCESSED_DIR / "terrain_illumination.json"
     if not path.exists():
@@ -370,10 +334,7 @@ async def get_terrain_illumination():
 @app.get("/api/mission/report")
 async def get_mission_report(format: str = Query("json", description="Output format: 'json' or 'markdown'")):
     """
-    English: Generates a comprehensive aerospace mission evaluation report with MCDA rankings,
     safe touchdown zones, 7-day power generation balance, and IoT hardware telemetry.
-    Espanol: Genera un reporte exhaustivo de evaluacion de mision aeroespacial con clasificacion
-    MCDA, zonas seguras de alunizaje, balance energetico de 7 dias y telemetria IoT.
     """
     sites_path = DATA_PROCESSED_DIR / "artemis_sites_planetary_synthesis.parquet"
     zones_path = DATA_PROCESSED_DIR / "optimal_landing_sites.json"
@@ -474,8 +435,6 @@ async def get_mission_report(format: str = Query("json", description="Output for
 @app.websocket("/ws/teleop")
 async def websocket_teleop_endpoint(websocket: WebSocket, client_type: str = "dashboard"):
     """
-    English: Bidirectional real-time WebSocket channel for dashboards and ESP32-S3 hardware.
-    Espanol: Canal WebSocket bidireccional en tiempo real para paneles web y hardware ESP32-S3.
     """
     await relay_manager.connect_client(websocket, client_type=client_type)
     try:
@@ -529,8 +488,6 @@ if DASHBOARD_DIR.is_dir():
 @app.get("/", response_class=HTMLResponse)
 async def root_redirect():
     """
-    English: Root route redirecting to dashboard.
-    Espanol: Ruta raiz que redirige al panel de control.
     """
     return """
     <!DOCTYPE html>

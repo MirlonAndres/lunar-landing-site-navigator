@@ -1,19 +1,19 @@
 /**
  * ================================================================================
- * FIRMWARE BRAZO ROBOTICO 5-DOF ESP32-S3 - NASA SPACE APPS CHALLENGE 2026
- * PROYECTO: LUNAR LANDING SITE NAVIGATOR - EQUIPO 01 (eq01)
+ * ESP32-S3 5-DOF ROBOTIC ARM FIRMWARE - NASA SPACE APPS CHALLENGE 2026
+ * PROJECT: LUNAR LANDING SITE NAVIGATOR - TEAM 01 (eq01)
  * ================================================================================
- * Hardware:
- * - Placa: ESP32-S3 (DevKitC-1, N8, N16, etc.)
- * - I2C: SDA = GPIO 8, SCL = GPIO 9 (PCA9685 a 0x40 para 5 servomotores)
- * - Broker en la Nube: fimee-esp32-hub-ahife23fha-tl.a.run.app:443 (WSS)
+ * Hardware Architecture:
+ * - Microcontroller: ESP32-S3 (DevKitC-1, N8, N16, etc.)
+ * - I2C Bus: SDA = GPIO 8, SCL = GPIO 9 (PCA9685 at 0x40 driving 5 servos)
+ * - Cloud Relay Broker: fimee-esp32-hub-ahife23fha-tl.a.run.app:443 (WSS)
  *
- * NOTA IMPORTANTE DE CONFIGURACION EN ARDUINO IDE (Menu Herramientas / Tools):
- * 1. Placa: "ESP32S3 Dev Module"
- * 2. USB CDC On Boot: "Enabled"  <-- OBLIGATORIO para ver el monitor serie en COM6
- * 3. PSRAM: "Disabled"            <-- OBLIGATORIO si tu placa no tiene PSRAM externa (evita bootloop)
- * 4. Flash Mode: "DIO 80MHz"     <-- Coincide con mode:DIO de tu chip
- * 5. Flash Size: "8MB" (o "4MB" / "16MB" segun tu placa)
+ * ARDUINO IDE COMPILATION SETTINGS (Tools Menu):
+ * 1. Board: "ESP32S3 Dev Module"
+ * 2. USB CDC On Boot: "Enabled"  <-- REQUIRED for native USB Serial Monitor on COM port
+ * 3. PSRAM: "Disabled"            <-- REQUIRED if board lacks external PSRAM (avoids bootloop)
+ * 4. Flash Mode: "DIO 80MHz"     <-- Matches chip SPI flash mode
+ * 5. Flash Size: "8MB" (or "4MB" / "16MB" depending on your module)
  * ================================================================================
  */
 
@@ -32,26 +32,26 @@ const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
 const char* WS_HOST       = "fimee-esp32-hub-ahife23fha-tl.a.run.app";
 const uint16_t WS_PORT    = 443;
 const char* WS_PATH       = "/ws";
-const char* EQUIPO_ID     = "eq01";
+const char* TEAM_ID       = "eq01";
 const char* DEVICE_TOKEN  = "YOUR_DEVICE_TOKEN_HERE";
 
-// ================= 3. ASIGNACION DE PINES ESP32-S3 =================
-#define PIN_I2C_SDA         8   // Pin 8 a SDA
-#define PIN_I2C_SCL         9   // Pin 9 a SCL
-#define PIN_LED_STATUS      2   // LED indicador (GPIO 2 o 48 segun fabricante)
-#define PIN_SOLAR_ADC       1   // ADC1_CH0 para lectura analogica
+// ================= 3. ESP32-S3 PIN ALLOCATION =====================
+#define PIN_I2C_SDA         8   // GPIO 8 to PCA9685 SDA
+#define PIN_I2C_SCL         9   // GPIO 9 to PCA9685 SCL
+#define PIN_LED_STATUS      2   // Status LED indicator (GPIO 2 or 48)
+#define PIN_SOLAR_ADC       1   // ADC1_CH0 for photovoltaic analog voltage
 #define PCA9685_ADDR        0x40
 #define MPU6050_ADDR        0x68
 
-// ================= 4. CONTROLADOR NATIVO I2C PCA9685 ===============
+// ================= 4. NATIVE I2C PCA9685 CONTROLLER ===============
 #define PCA9685_MODE1       0x00
 #define PCA9685_MODE2       0x01
 #define PCA9685_PRESCALE    0xFE
 #define PCA9685_LED0_ON_L   0x06
 
-bool pca9685_conectado = false;
-bool mpu6050_conectado = false;
-bool ws_iniciado       = false;
+bool pca9685_connected = false;
+bool mpu6050_connected = false;
+bool ws_initialized    = false;
 
 void pca9685_writeRegister(uint8_t reg, uint8_t val) {
   Wire.beginTransmission(PCA9685_ADDR);
@@ -70,7 +70,7 @@ uint8_t pca9685_readRegister(uint8_t reg) {
   return 0;
 }
 
-bool iniciarPCA9685() {
+bool initPCA9685() {
   Wire.beginTransmission(PCA9685_ADDR);
   if (Wire.endTransmission() != 0) return false;
 
@@ -79,7 +79,7 @@ bool iniciarPCA9685() {
   uint8_t oldmode = pca9685_readRegister(PCA9685_MODE1);
   uint8_t sleepMode = (oldmode & 0x7F) | 0x10;
   pca9685_writeRegister(PCA9685_MODE1, sleepMode);
-  pca9685_writeRegister(PCA9685_PRESCALE, 121); // 50 Hz para servos
+  pca9685_writeRegister(PCA9685_PRESCALE, 121); // 50 Hz PWM for analog servos
   pca9685_writeRegister(PCA9685_MODE1, oldmode);
   delay(5);
   pca9685_writeRegister(PCA9685_MODE1, oldmode | 0xA0);
@@ -87,14 +87,14 @@ bool iniciarPCA9685() {
   return true;
 }
 
-void moverServoPCA9685(uint8_t canal, float angulo) {
-  if (!pca9685_conectado || canal > 15) return;
-  angulo = constrain(angulo, 0.0f, 180.0f);
-  // Mapeo 500 us (0°) a 2500 us (180°) -> 102 a 512 ticks sobre 4096 a 50Hz
-  uint16_t offTick = map((long)(angulo * 10), 0, 1800, 102, 512);
+void moveServoPCA9685(uint8_t channel, float angle) {
+  if (!pca9685_connected || channel > 15) return;
+  angle = constrain(angle, 0.0f, 180.0f);
+  // Map 500 us (0 deg) to 2500 us (180 deg) -> 102 to 512 ticks over 4096 at 50Hz
+  uint16_t offTick = map((long)(angle * 10), 0, 1800, 102, 512);
 
   Wire.beginTransmission(PCA9685_ADDR);
-  Wire.write(PCA9685_LED0_ON_L + (4 * canal));
+  Wire.write(PCA9685_LED0_ON_L + (4 * channel));
   Wire.write(0);
   Wire.write(0);
   Wire.write(offTick & 0xFF);
@@ -102,7 +102,7 @@ void moverServoPCA9685(uint8_t canal, float angulo) {
   Wire.endTransmission();
 }
 
-bool iniciarMPU6050() {
+bool initMPU6050() {
   Wire.beginTransmission(MPU6050_ADDR);
   if (Wire.endTransmission() != 0) return false;
   Wire.beginTransmission(MPU6050_ADDR);
@@ -111,8 +111,8 @@ bool iniciarMPU6050() {
   return (Wire.endTransmission() == 0);
 }
 
-void leerMPU6050(float &ax, float &ay, float &az) {
-  if (!mpu6050_conectado) {
+void readMPU6050(float &ax, float &ay, float &az) {
+  if (!mpu6050_connected) {
     ax = 0.01f; ay = -0.02f; az = 0.99f;
     return;
   }
@@ -128,30 +128,30 @@ void leerMPU6050(float &ax, float &ay, float &az) {
   }
 }
 
-// ================= 5. ESTADO Y ARTICULACIONES DEL BRAZO ============
-// Limites biomecanicos seguros por articulacion [Base, Hombro, Codo, Muneca, Panel Roll]
+// ================= 5. ARM STATE & JOINT CONSTRAINTS ================
+// Safe anatomical limits per joint [Base, Shoulder, Elbow, Wrist, Panel Roll]
 const float SERVO_MIN_DEG[5]  = {25.0f, 35.0f, 40.0f, 40.0f, 30.0f};
 const float SERVO_MAX_DEG[5]  = {155.0f, 115.0f, 125.0f, 135.0f, 150.0f};
 
-float angulosActuales[5] = {90.0f, 55.0f, 60.0f, 70.0f, 90.0f};
-float angulosObjetivo[5] = {90.0f, 55.0f, 60.0f, 70.0f, 90.0f};
-char modoActual[24]       = "AUTO_SUN_TRACK";
+float currentAngles[5] = {90.0f, 55.0f, 60.0f, 70.0f, 90.0f};
+float targetAngles[5]  = {90.0f, 55.0f, 60.0f, 70.0f, 90.0f};
+char currentMode[24]   = "AUTO_SUN_TRACK";
 
-float tempAmbiente = 23.5f;
-float humAmbiente  = 44.0f;
-float voltajeSolar = 2.75f;
-float bateriaSoc   = 94.0f;
+float ambientTemp = 23.5f;
+float ambientHum  = 44.0f;
+float solarVolt   = 2.75f;
+float batterySoc  = 94.0f;
 
 WebSocketsClient webSocket;
-bool autenticado = false;
-unsigned long ultimoEnvioMs = 0;
-const unsigned long INTERVALO_TELEMETRIA_MS = 500;
+bool isAuthenticated = false;
+unsigned long lastTelemetrySendMs = 0;
+const unsigned long TELEMETRY_INTERVAL_MS = 500;
 
-// ================= 6. SALUDO INICIAL ("hello") =====================
-void enviarHello() {
+// ================= 6. INITIAL HANDSHAKE ("hello") ===================
+void sendHello() {
   JsonDocument doc;
   doc["t"]     = "hello";
-  doc["id"]    = EQUIPO_ID;
+  doc["id"]    = TEAM_ID;
   doc["token"] = DEVICE_TOKEN;
   doc["fw"]    = "2.1.1-s3-i2c";
   doc["rssi"]  = WiFi.RSSI();
@@ -171,60 +171,60 @@ void enviarHello() {
   String json;
   serializeJson(doc, json);
   webSocket.sendTXT(json);
-  Serial.println("[WS] 'hello' enviado -> Esperando autenticacion del Broker...");
+  Serial.println("[WS] 'hello' handshake sent -> Awaiting broker authentication...");
 }
 
-// ================= 7. EJECUCION DE COMANDOS DE LA WEB ==============
-bool ejecutarComando(const char* k, JsonVariantConst v, JsonDocument& rootDoc) {
+// ================= 7. COMMAND EXECUTION DISPATCHER ==================
+bool executeCommand(const char* k, JsonVariantConst v, JsonDocument& rootDoc) {
   if (strcmp(k, "arm") == 0 || strcmp(k, "") == 0) {
     JsonArrayConst arr = v["a"];
     if (arr.isNull()) arr = rootDoc["target_angles"].as<JsonArrayConst>();
 
     if (!arr.isNull() && arr.size() >= 5) {
       for (int i = 0; i < 5; i++) {
-        angulosObjetivo[i] = constrain(arr[i].as<float>(), SERVO_MIN_DEG[i], SERVO_MAX_DEG[i]);
+        targetAngles[i] = constrain(arr[i].as<float>(), SERVO_MIN_DEG[i], SERVO_MAX_DEG[i]);
       }
       const char* m = v["m"] | rootDoc["mode"] | "MANUAL";
-      strncpy(modoActual, m, sizeof(modoActual) - 1);
-      modoActual[sizeof(modoActual) - 1] = '\0';
+      strncpy(currentMode, m, sizeof(currentMode) - 1);
+      currentMode[sizeof(currentMode) - 1] = '\0';
 
-      Serial.printf("[CMD] Brazo -> [%.0f°, %.0f°, %.0f°, %.0f°, %.0f°] (%s)\n",
-                    angulosObjetivo[0], angulosObjetivo[1], angulosObjetivo[2],
-                    angulosObjetivo[3], angulosObjetivo[4], modoActual);
+      Serial.printf("[CMD] Arm target -> [%.0f deg, %.0f deg, %.0f deg, %.0f deg, %.0f deg] (%s)\n",
+                    targetAngles[0], targetAngles[1], targetAngles[2],
+                    targetAngles[3], targetAngles[4], currentMode);
       return true;
     }
   }
 
   if (strcmp(k, "servo") == 0) {
-    int eje = v["eje"] | 0;
-    float angulo = v["angulo"] | 90.0f;
-    if (eje >= 0 && eje < 5) {
-      angulosObjetivo[eje] = constrain(angulo, SERVO_MIN_DEG[eje], SERVO_MAX_DEG[eje]);
+    int jointAxis = v["eje"] | v["axis"] | 0;
+    float angle = v["angulo"] | v["angle"] | 90.0f;
+    if (jointAxis >= 0 && jointAxis < 5) {
+      targetAngles[jointAxis] = constrain(angle, SERVO_MIN_DEG[jointAxis], SERVO_MAX_DEG[jointAxis]);
       return true;
     }
   }
 
   if (strcmp(k, "led") == 0) {
-    int estado = v["on"] | 0;
-    digitalWrite(PIN_LED_STATUS, estado ? HIGH : LOW);
+    int state = v["on"] | 0;
+    digitalWrite(PIN_LED_STATUS, state ? HIGH : LOW);
     return true;
   }
 
   return false;
 }
 
-// ================= 8. MANEJO DE EVENTOS WEBSOCKET ==================
+// ================= 8. WEBSOCKET EVENT HANDLER ======================
 void onWebSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
   switch (type) {
     case WStype_CONNECTED:
-      Serial.println("[WS] Conectado al Broker en la Nube. Enviando hello...");
-      autenticado = false;
-      enviarHello();
+      Serial.println("[WS] Connected to Cloud Broker. Sending hello handshake...");
+      isAuthenticated = false;
+      sendHello();
       break;
 
     case WStype_DISCONNECTED:
-      Serial.println("[WS] Desconectado. Reintentando automaticamente...");
-      autenticado = false;
+      Serial.println("[WS] Disconnected from Cloud Broker. Reconnection scheduled...");
+      isAuthenticated = false;
       break;
 
     case WStype_TEXT: {
@@ -233,8 +233,8 @@ void onWebSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
       const char* t = doc["t"] | doc["type"] | "";
 
       if (strcmp(t, "hello_ok") == 0) {
-        autenticado = true;
-        Serial.println("\n[WS] >>> eq01 AUTENTICADO Y ONLINE EN LA WEB! <<<\n");
+        isAuthenticated = true;
+        Serial.println("\n[WS] >>> TEAM 01 AUTHENTICATED AND ONLINE ON WEB! <<<\n");
         digitalWrite(PIN_LED_STATUS, HIGH);
         return;
       }
@@ -242,7 +242,7 @@ void onWebSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
       if (strcmp(t, "cmd") == 0 || strcmp(t, "command") == 0) {
         const char* cid = doc["cid"] | "";
         const char* k   = doc["k"]   | "arm";
-        bool ok = ejecutarComando(k, doc["v"], doc);
+        bool ok = executeCommand(k, doc["v"], doc);
 
         if (strlen(cid) > 0) {
           JsonDocument ack;
@@ -261,124 +261,123 @@ void onWebSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
   }
 }
 
-// ================= 9. SETUP RESILIENTE =============================
+// ================= 9. RESILIENT SETUP ===============================
 void setup() {
-  // Inicializacion del puerto serie USB nativo del ESP32-S3
+  // Native USB CDC serial initialization for ESP32-S3
   Serial.begin(115200);
-  delay(1500); // Pausa para que el USB CDC de la PC enumere
+  delay(1500); // Allow PC USB CDC enumerator to attach
 
   Serial.println("\n\n========================================================");
-  Serial.println("  ESP32-S3 BRAZO ROBOTICO 5-DOF - NASA SPACE APPS 2026");
-  Serial.println("  Iniciando sistema...");
+  Serial.println("  ESP32-S3 5-DOF ROBOTIC ARM - NASA SPACE APPS 2026");
+  Serial.println("  Initializing system subsystems...");
   Serial.println("========================================================");
 
   pinMode(PIN_LED_STATUS, OUTPUT);
   digitalWrite(PIN_LED_STATUS, LOW);
 
-  // 1. Iniciar bus I2C con timeout corto (evita bloqueos si no hay pullup)
-  Serial.printf("[I2C] Iniciando bus en SDA=%d, SCL=%d...\n", PIN_I2C_SDA, PIN_I2C_SCL);
+  // 1. Initialize I2C bus with short timeout to prevent lockups
+  Serial.printf("[I2C] Initializing bus on SDA=%d, SCL=%d...\n", PIN_I2C_SDA, PIN_I2C_SCL);
   Wire.begin(PIN_I2C_SDA, PIN_I2C_SCL, 100000);
-  Wire.setTimeOut(25); // Timeout de 25ms para que NUNCA bloquee la ejecucion
+  Wire.setTimeOut(25); // 25ms timeout prevents hangs if a device drops off
 
-  // 2. Escaneo no bloqueante
-  Serial.println("[I2C] Escaneando dispositivos...");
-  for (byte dir = 1; dir < 127; dir++) {
-    Wire.beginTransmission(dir);
+  // 2. Non-blocking device scan
+  Serial.println("[I2C] Scanning connected devices...");
+  for (byte addr = 1; addr < 127; addr++) {
+    Wire.beginTransmission(addr);
     if (Wire.endTransmission() == 0) {
-      Serial.printf("  -> Dispositivo encontrado en direccion 0x%02X\n", dir);
+      Serial.printf("  -> I2C device detected at address 0x%02X\n", addr);
     }
   }
 
-  // 3. Iniciar PCA9685
-  if (iniciarPCA9685()) {
-    pca9685_conectado = true;
-    Serial.println("[I2C] PCA9685 detectado en 0x40. Servos inicializados a 50 Hz.");
+  // 3. Initialize PCA9685 PWM Controller
+  if (initPCA9685()) {
+    pca9685_connected = true;
+    Serial.println("[I2C] PCA9685 detected at 0x40. Servos initialized at 50 Hz.");
     for (int i = 0; i < 5; i++) {
-      moverServoPCA9685(i, angulosActuales[i]);
+      moveServoPCA9685(i, currentAngles[i]);
     }
   } else {
-    Serial.println("[I2C] AVISO: PCA9685 no detectado en 0x40 (verificar cables SDA/SCL o alimentacion).");
+    Serial.println("[I2C] WARNING: PCA9685 not detected at 0x40 (verify SDA/SCL wiring and external 5V power).");
   }
 
-  iniciarMPU6050();
+  initMPU6050();
 
-  // 4. Iniciar conexion WiFi
-  Serial.printf("[WiFi] Conectando a '%s' ...\n", WIFI_SSID);
+  // 4. Connect to Wi-Fi station
+  Serial.printf("[WiFi] Connecting to '%s' ...\n", WIFI_SSID);
   WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 }
 
-// ================= 10. LOOP ========================================
+// ================= 10. MAIN SYSTEM LOOP ============================
 void loop() {
-  unsigned long ahora = millis();
+  unsigned long now = millis();
 
-  // Conexion / Reconexion segura al WebSocket solo cuando hay WiFi
+  // Secure WebSocket connection / reconnection when Wi-Fi is active
   if (WiFi.status() == WL_CONNECTED) {
-    if (!ws_iniciado) {
-      Serial.printf("\n[WiFi] Conectado! IP: %s (RSSI: %d dBm)\n",
+    if (!ws_initialized) {
+      Serial.printf("\n[WiFi] Connected! IP: %s (RSSI: %d dBm)\n",
                     WiFi.localIP().toString().c_str(), WiFi.RSSI());
-      Serial.printf("[WS] Conectando a %s:%d%s ...\n", WS_HOST, WS_PORT, WS_PATH);
+      Serial.printf("[WS] Connecting to %s:%d%s ...\n", WS_HOST, WS_PORT, WS_PATH);
       webSocket.beginSSL(WS_HOST, WS_PORT, WS_PATH);
       webSocket.onEvent(onWebSocketEvent);
       webSocket.setReconnectInterval(3000);
       webSocket.enableHeartbeat(15000, 5000, 2);
-      ws_iniciado = true;
+      ws_initialized = true;
     }
     webSocket.loop();
   } else {
-    // Si se desconecta WiFi, permitir que reintente
-    ws_iniciado = false;
-    autenticado = false;
+    ws_initialized  = false;
+    isAuthenticated = false;
   }
 
-  // Movimiento suave de los servos (cada 20 ms / 50 Hz)
-  static unsigned long ultimoPasoServoMs = 0;
-  if (ahora - ultimoPasoServoMs >= 20) {
-    ultimoPasoServoMs = ahora;
-    const float PASO_MAX_DEG = 2.0f;
+  // Smooth kinematic servo interpolation (every 20 ms / 50 Hz)
+  static unsigned long lastServoStepMs = 0;
+  if (now - lastServoStepMs >= 20) {
+    lastServoStepMs = now;
+    const float MAX_STEP_DEG = 2.0f;
 
     for (int i = 0; i < 5; i++) {
-      float diff = angulosObjetivo[i] - angulosActuales[i];
+      float diff = targetAngles[i] - currentAngles[i];
       if (fabs(diff) > 0.1f) {
-        if (diff > PASO_MAX_DEG) diff = PASO_MAX_DEG;
-        if (diff < -PASO_MAX_DEG) diff = -PASO_MAX_DEG;
-        angulosActuales[i] += diff;
-        if (pca9685_conectado) {
-          moverServoPCA9685(i, angulosActuales[i]);
+        if (diff > MAX_STEP_DEG) diff = MAX_STEP_DEG;
+        if (diff < -MAX_STEP_DEG) diff = -MAX_STEP_DEG;
+        currentAngles[i] += diff;
+        if (pca9685_connected) {
+          moveServoPCA9685(i, currentAngles[i]);
         }
       } else {
-        angulosActuales[i] = angulosObjetivo[i];
+        currentAngles[i] = targetAngles[i];
       }
     }
   }
 
-  // Envio de telemetria cada 500 ms (2 Hz)
-  if (autenticado && WiFi.status() == WL_CONNECTED && (ahora - ultimoEnvioMs >= INTERVALO_TELEMETRIA_MS)) {
-    ultimoEnvioMs = ahora;
+  // Telemetry broadcast every 500 ms (2 Hz)
+  if (isAuthenticated && WiFi.status() == WL_CONNECTED && (now - lastTelemetrySendMs >= TELEMETRY_INTERVAL_MS)) {
+    lastTelemetrySendMs = now;
 
     float ax, ay, az;
-    leerMPU6050(ax, ay, az);
+    readMPU6050(ax, ay, az);
 
     int adcRaw = analogRead(PIN_SOLAR_ADC);
-    voltajeSolar = (adcRaw > 50) ? ((adcRaw / 4095.0f) * 3.3f) : (2.4f + sin(angulosActuales[4] * DEG_TO_RAD) * 0.7f);
-    tempAmbiente = 23.2f + (sin(ahora * 0.0005f) * 0.4f);
-    humAmbiente  = 43.5f + (cos(ahora * 0.0005f) * 1.2f);
+    solarVolt   = (adcRaw > 50) ? ((adcRaw / 4095.0f) * 3.3f) : (2.4f + sin(currentAngles[4] * DEG_TO_RAD) * 0.7f);
+    ambientTemp = 23.2f + (sin(now * 0.0005f) * 0.4f);
+    ambientHum  = 43.5f + (cos(now * 0.0005f) * 1.2f);
 
     JsonDocument doc;
     doc["t"]    = "tel";
-    doc["id"]   = EQUIPO_ID;
+    doc["id"]   = TEAM_ID;
     doc["rssi"] = WiFi.RSSI();
 
     JsonObject d = doc["d"].to<JsonObject>();
-    d["solar_v"] = round(voltajeSolar * 100.0f) / 100.0f;
-    d["temp"]    = round(tempAmbiente * 10.0f) / 10.0f;
-    d["hum"]     = round(humAmbiente * 10.0f) / 10.0f;
-    d["bat"]     = round(bateriaSoc * 10.0f) / 10.0f;
-    d["mode"]    = modoActual;
+    d["solar_v"] = round(solarVolt * 100.0f) / 100.0f;
+    d["temp"]    = round(ambientTemp * 10.0f) / 10.0f;
+    d["hum"]     = round(ambientHum * 10.0f) / 10.0f;
+    d["bat"]     = round(batterySoc * 10.0f) / 10.0f;
+    d["mode"]    = currentMode;
 
     JsonArray anglesArr = d["angles"].to<JsonArray>();
     for (int i = 0; i < 5; i++) {
-      anglesArr.add((int)round(angulosActuales[i]));
+      anglesArr.add((int)round(currentAngles[i]));
     }
 
     JsonArray accArr = d["acc"].to<JsonArray>();
@@ -386,8 +385,8 @@ void loop() {
     accArr.add(round(ay * 100.0f) / 100.0f);
     accArr.add(round(az * 100.0f) / 100.0f);
 
-    String salida;
-    serializeJson(doc, salida);
-    webSocket.sendTXT(salida);
+    String output;
+    serializeJson(doc, output);
+    webSocket.sendTXT(output);
   }
 }
