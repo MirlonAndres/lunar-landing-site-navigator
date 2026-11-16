@@ -1,0 +1,163 @@
+================================================================================
+                    LUNAR LANDING SITE NAVIGATOR
+    AUTONOMOUS ARTEMIS LANDING SITE SELECTION & 3D DIGITAL TWIN SYSTEM
+          NASA INTERNATIONAL SPACE APPS CHALLENGE 2026 - TEAM 01 (eq01)
+================================================================================
+
+PROJECT LINKS:
+- Production Cloud Deployment (Google Cloud Run): 
+  https://lunar-landing-navigator-871533921898.southamerica-west1.run.app/dashboard
+- Official GitHub Repository: 
+  https://github.com/MirlonAndres/lunar-landing-site-navigator
+
+================================================================================
+1. EXECUTIVE SUMMARY & MISSION PURPOSE
+================================================================================
+The lunar south pole is humanity's strategic gateway for establishing a
+sustainable, long-term presence on the Moon under NASA's Artemis program,
+harboring extensive water-ice deposits trapped inside cryogenic Permanently
+Shadowed Regions (PSRs). However, polar operations present two critical hazards:
+  1. Extreme topography characterized by sharp crater rims, steep escarpments,
+     and micro-scale surface roughness that risk lander tip-over upon touchdown.
+  2. Extreme grazing solar angles (solar elevation hovering between 0.8° and
+     1.5° above the horizon), causing flat, horizontal solar panels to capture
+     virtually negligible sunlight (~26 W/m² due to sin(1.1°) ≈ 0.019).
+
+The Lunar Landing Site Navigator solves both challenges within a unified,
+mission-critical web teleoperation and planetary analysis platform:
+  - Multi-Criteria Decision Analysis (MCDA) ingesting real NASA Lunar
+    Reconnaissance Orbiter (LRO) datasets (LOLA altimetry, Diviner thermal,
+    LEND epithermal hydrogen, and JPL Horizons celestial ephemerides).
+  - Interactive 3D WebGL Digital Twin (Three.js) delivering seamless macro-to-
+    micro navigation from the full Moon globe down to a 256x256 LOLA terrain mesh.
+  - 5-DOF Articulated Robotic Arm with Solar Panel End-Effector that yields a
+    50.1x energy harvest multiplier over conventional flat-mounted panels.
+  - Real-Time Hardware-In-The-Loop (HIL) Teleoperation with an ESP32-S3 and
+    PCA9685 I2C controller communicating over cloud WebSockets with sub-150 ms
+    latency.
+
+================================================================================
+2. WEB APPLICATION FEATURES & CAPABILITIES
+================================================================================
+
+A. INTERACTIVE 3D WEBGL DIGITAL TWIN (Three.js)
+--------------------------------------------------------------------------------
+1. Dual-Scale "Globe-to-Site" Navigation:
+   - Macro View (Moon Globe): Full 3D sphere rendered with authentic NASA LROC
+     optical albedo textures and interactive spatial markers for the 4 candidate
+     Artemis landing regions.
+   - Micro View (Polar Surface): Fluid cinematic descent down to a high-density
+     256x256 vertex terrain elevation mesh (16 km x 16 km footprint) derived
+     directly from NASA LRO LOLA laser altimetry.
+2. Orbital Camera Controls:
+   - 360° orbital rotation, smooth pan, collision-bounded zooming.
+   - Keyboard Shortcuts: 'R' (Center Camera), 'G' (Toggle Globe/Surface View),
+     'Spacebar' (Play/Pause 7-day timeline simulation).
+3. Astronomical Lighting & Horizon Shadows:
+   - Grazing directional sunlight accurately aligned to NASA JPL Horizons
+     topocentric solar azimuth and elevation angles.
+   - Dynamic shadow casting driven by surrounding crater topography.
+
+B. MULTI-CRITERIA DECISION ANALYSIS (MCDA) & ARTEMIS PORTFOLIO
+--------------------------------------------------------------------------------
+1. Comparative Evaluation of 4 Artemis Candidate Sites:
+   - Site 1: Connecting Ridge (89.44° S, 222.05° E) -> Primary Site (Score: 85.8/100)
+     Optimal operational balance: 51% continuous solar illumination, level terrain (+1,139 m).
+   - Site 2: North Peak (89.15° S, 295.40° E) -> Tactical Contingency (Score: 45.7/100)
+     100% continuous solar visibility throughout the polar illumination cycle.
+   - Site 3: Malapert Mountain (85.99° S, 002.94° E) -> Telecom Base (Score: 52.4/100)
+     High-elevation massif (+4,980 m) with 88.4% uninterrupted line-of-sight to Earth.
+   - Site 4: Faustini Rim A (87.12° S, 084.50° E) -> ISRU Resource Base (Score: 33.0/100)
+     Direct access to cryogenic PSR cold traps containing stable water ice (<40 K).
+2. Autonomous Delineation of Top 5 Safe Touchdown Footprints (100 m Radius):
+   - Spatial hazard avoidance algorithm rejecting slopes > 5° and roughness > 0.15 m.
+   - Safe Zone #1 (Connecting Ridge): Elevation +1,304 m, Max Slope 2.73°,
+     Mean Slope 1.08°, Roughness 0.111 m, Distance to PSR Ice: 5.61 km. Safety Score: 92.71/100.
+3. Animated Parabolic Lander Relocation:
+   - Clicking any of the 5 safe touchdown footprints triggers a smooth parabolic
+     ballistic relocation trajectory for the lander and robotic arm across the 3D surface.
+
+C. SWITCHABLE SCIENTIFIC TERRAIN LAYERS
+--------------------------------------------------------------------------------
+1. Elevation Layer: Hypsometric height tinting (-2,000 m to +2,500 m).
+2. Slope Hazard Layer: Geotechnical safety traffic-light system:
+   - Green (0°-5°): Optimal touchdown safety.
+   - Light Green (5°-15°): Safe navigable slope.
+   - Orange (15°-20°): Caution zone.
+   - Red (>20°): High hazard / critical lander tip-over risk.
+3. Solar Illumination Layer: Ray-cast direct sunlight fraction accounting for
+   horizon ridgeline masking.
+4. Water-Ice / PSR Layer: Visualizes cryogenic thermal cold traps (<110 K surface
+   ice stability and <40 K hyper-volatile nitrogen/methane preservation).
+5. Safe Zones Layer: Highlights circular 100 m radius landing safety footprints.
+
+D. 5-DOF ROBOTIC ARM TELEOPERATION & SOLAR HARVESTING PHYSICS
+--------------------------------------------------------------------------------
+1. Real-Time Closed-Form Inverse Kinematics (IK):
+   - Continuously computes joint angles to orient the photovoltaic panel perpendicular
+     to the incident solar vector.
+   - Anatomically calibrated joint limits preventing mechanical binding:
+     * Joint 0 (Turntable Base): 25° to 155° (Home: 90°)
+     * Joint 1 (Shoulder Pitch): 35° to 115° (Home: 55°)
+     * Joint 2 (Elbow Flexion): 40° to 125° (Home: 60° - natural human-like '<' posture)
+     * Joint 3 (Wrist Pitch): 40° to 135° (Home: 70°)
+     * Joint 4 (Panel Roll): 30° to 150° (Home: 90°)
+2. 5-Ray Visual Alignment Frustum & Solar HUD:
+   - 5 projected alignment rays extending from the 4 corners and center of the panel
+     toward the Sun with an interactive visual frustum cone.
+   - HUD displays real-time cosine alignment efficiency (0% to 100%) and instant flux.
+3. The 50.1x Energy Harvest Multiplier:
+   - Fixed Horizontal Panel: Captures ~26.1 W/m² -> Total 7-day energy: 315 Wh.
+     (Lander battery depletes completely within 18 hours; critical thermal freeze).
+   - Active 5-DOF Articulated Panel: Captures 1,361 W/m² normal flux -> Total 7-day: 15,795 Wh.
+   - Net Multiplier: 50.1x more harvested energy, sustaining battery state of charge
+     above 23.8% and powering cryogenic internal survival heaters through shadow passes.
+4. Preset Tactical Pose Actions:
+   - 'Home': Neutral upright transit posture.
+   - 'Point Sun': Direct perpendicular alignment with solar vector.
+   - 'Sample': Surface reach posture for regolith sampling operations.
+   - 'Stow': Compact configuration for launch/landing shock mitigation.
+   - 'Dust Shed': Vertical tilt shaking abrasive lunar dust from photovoltaic cells.
+
+E. DUAL OPERATIONAL MODES
+--------------------------------------------------------------------------------
+1. Live Teleoperation Mode:
+   - Sub-150 ms bidirectional WebSocket link (`wss://`) to the physical ESP32-S3
+     microcontroller over Google Cloud Run.
+   - Interactive sliders immediately actuate the physical robotic arm.
+   - Live telemetry from physical hardware (solar panel ADC voltage, temperature,
+     Wi-Fi RSSI) updates directly on the dashboard.
+2. 7-Day Demo Simulation Mode (20 s Accelerated Transit):
+   - Fast-forward orbital simulation compressing 168 polar hours into 20 seconds.
+   - Real-time scrubbable timeline with battery SoC %, accumulated power (Wh),
+     and Direct-To-Earth (DTE) communication occultation tracking.
+
+F. EVALUATION & JUDGING TOOLS FOR NASA JURORS
+--------------------------------------------------------------------------------
+1. Interactive Guided Mission Tour (Button 'Tour'):
+   - 5-step guided modal walk-through explaining: MCDA site selection, slope
+     safety, lander relocation, 50.1x solar physics, and physical hardware teleop.
+2. Aerospace Mission Report Exporter (Button 'Report'):
+   - One-click export downloading complete technical evaluation dossiers in
+     Markdown or JSON format (`/api/mission/report?format=markdown`).
+3. Real-Time Hardware Status Pill:
+   - Header badge displaying live connection status with the ESP32 (Online,
+     Disconnected, or Cloud Emulation) with 10-second automatic staleness detection.
+
+================================================================================
+3. SYSTEM ARCHITECTURE & PHYSICAL HARDWARE
+================================================================================
+- Backend Engine: Python 3.12, FastAPI, Uvicorn, WebSockets.
+- Frontend Engine: HTML5, CSS3 NASA Dark-Theme, Vanilla ES6+ JavaScript, Three.js r128.
+- Cloud Hosting: Google Cloud Run (Santiago Region, low-latency container).
+- Embedded Hardware: ESP32-S3 Dual-Core FreeRTOS @ 240 MHz (Core 0: WSS & ADC sensing;
+  Core 1: 50 Hz kinematic motion interpolation).
+- Servo Controller: PCA9685 16-channel 12-bit PWM driver via I2C (SDA=GPIO 8, SCL=GPIO 9).
+- Mechanical CAD: Full SolidWorks parts (.SLDPRT, .SLDASM) and 3D printable STL files
+  for arm links, turntable, and servo mounting brackets.
+- Security: Zero committed secrets, environment variable configuration (.env),
+  and standard open-source MIT License.
+
+================================================================================
+END OF EXECUTIVE SUMMARY
+================================================================================
