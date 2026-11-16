@@ -8,8 +8,7 @@ Este archivo contiene el texto exacto listo para copiar y pegar en cada uno de
 los campos de tu formulario de postulacion (mostrado en tus capturas).
 Para optar a los "Premios Globales" de la NASA, los jueces internacionales evaluan
 en INGLES. A continuacion tienes la version oficial en INGLES (para pegar en el
-formulario) y debajo su traduccion al ESPAÑOL para que conozcas exactamente que
-estas presentando.
+formulario) y debajo su explicacion para que conozcas exactamente como darle formato.
 ================================================================================
 
 
@@ -35,16 +34,6 @@ Using NASA Lunar Reconnaissance Orbiter (LRO) datasets—LOLA altimetry, Diviner
 
 Crucially, our active 5-DOF robotic solar tracker uses real-time inverse kinematics to keep the photovoltaic panel perpendicular to the grazing polar Sun, delivering a breakthrough 50.1x energy multiplication factor (15,795 Wh vs 315 Wh over 7 days) compared to fixed horizontal panels. The platform features sub-150ms bidirectional hardware-in-the-loop teleoperation via an ESP32-S3 microcontroller and cloud WebSockets.
 
----
-[TRADUCCION AL ESPAÑOL DE REFERENCIA]:
-El polo sur lunar es la puerta de entrada de la humanidad para una presencia sostenible bajo el programa Artemis de la NASA, pero presenta graves peligros: pendientes extremas, bordes de cráteres escarpados y ángulos solares rasantes (<1.5° sobre el horizonte) donde los paneles solares horizontales convencionales reciben una irradiación casi nula.
-
-Desarrollamos Lunar Landing Site Navigator, una plataforma aeroespacial de soporte de decisiones que combina Análisis de Decisión Multicriterio (MCDA), un Gemelo Digital 3D interactivo en WebGL y un brazo robótico 5-DOF controlado en el borde.
-
-Utilizando conjuntos de datos del Lunar Reconnaissance Orbiter (LRO) de la NASA (altimetría LOLA, mapas térmicos Diviner, datos de neutrones LEND y efemérides celestes de JPL Horizons), nuestro sistema evalúa regiones candidatas de Artemis y delimita las 5 Zonas Seguras de Alunizaje (pendiente <5°, rugosidad <0.15m) en Connecting Ridge.
-
-Fundamentalmente, nuestro brazo robótico 5-DOF utiliza cinemática inversa en tiempo real para mantener el panel perpendicular al Sol polar rasante, logrando un factor de multiplicación energética de 50.1x (15,795 Wh frente a 315 Wh en 7 días) en comparación con paneles horizontales fijos. La plataforma cuenta con teleoperación hardware-in-the-loop bidireccional con latencia <150 ms mediante un microcontrolador ESP32-S3 y WebSockets en la nube.
-
 
 --------------------------------------------------------------------------------
 CAMPO 3: ENLACES DEL PROYECTO (Project Links)
@@ -52,65 +41,79 @@ CAMPO 3: ENLACES DEL PROYECTO (Project Links)
 
 1. DEMOSTRACION DEL PROYECTO * (Project Demo - Video <=30s o Diapositivas <=7):
 >>> URL a pegar:
-[Pega aqui el enlace publico a tu video de YouTube/Google Drive o presentacion]
-Ejemplo si esta en YouTube: https://youtu.be/TU_VIDEO_AQUI
-O enlace a la seccion de showcase en GitHub:
 https://github.com/MirlonAndres/lunar-landing-site-navigator#readme
+(O pega aqui el enlace publico a tu video de YouTube/Google Drive si lo tienes).
 
 2. PROYECTO * (Project - Enlace publico a tu aplicacion web / codigo):
 >>> URL a pegar (Enlace directo a tu servidor en Google Cloud Run sin login):
 https://lunar-landing-navigator-871533921898.southamerica-west1.run.app/dashboard
 
-(Nota: Tambien puedes incluir como enlace secundario o alternativo el repositorio de GitHub:
-https://github.com/MirlonAndres/lunar-landing-site-navigator)
-
 
 --------------------------------------------------------------------------------
 CAMPO 4: INFORMACION DEL PROYECTO - DETALLES DEL PROYECTO * (Project Details)
 --------------------------------------------------------------------------------
->>> COPIAR Y PEGAR EN EL FORMULARIO (INGLES):
+>>> COPIAR Y PEGAR EN EL EDITOR DE TEXTO ENRIQUECIDO (INGLES):
+
+==============================================================================
+🚀 LUNAR LANDING SITE NAVIGATOR — MISSION CONTROL & DIGITAL TWIN
+Artemis Program · Lunar South Pole Landing Site Selection & Active 5-DOF Solar Teleoperation
+NASA International Space Apps Challenge 2026 | Team 01 (eq01)
+
+🌐 Live Interactive Cloud App:
+https://lunar-landing-navigator-871533921898.southamerica-west1.run.app/dashboard
+
+📦 Open-Source Code, 3D CAD & Firmware Dossier:
+https://github.com/MirlonAndres/lunar-landing-site-navigator#readme
+==============================================================================
 
 ### 1. What does it do and how does it work?
-Lunar Landing Site Navigator is an integrated mission control platform that tackles lunar south polar landing and power starvation hazards for NASA's Artemis program:
-- **Orbital Planetary Analysis**: Ingests high-resolution NASA Lunar Reconnaissance Orbiter (LRO) LOLA laser altimeter digital elevation models (DEM), LRO Diviner thermal radiometer brightness maps, and LRO LEND epithermal neutron hydrogen indicators.
-- **Multi-Criteria Decision Analysis (MCDA)**: Evaluates 4 candidate Artemis landing sites (Connecting Ridge, North Peak, Malapert Mountain, Faustini Rim A) using an objective weighting framework combining slope stability (35%), solar illumination continuity (25%), Direct-to-Earth communication line of sight (20%), water-ice proximity (10%), and thermal extremes (10%).
-- **Autonomous Safe Zone Delineation**: Filters topographic hazards (Sobel/Horn gradient slopes and RMS surface roughness) to pinpoint the Top 5 Safe Touchdown Footprints (100 m radius, slope < 5°, roughness < 0.15 m).
-- **Interactive 3D WebGL Digital Twin (Three.js)**: Transitions seamlessly from a macro-scale 3D Moon globe with real LROC optical albedo down to a 256x256 LOLA surface mesh, with dynamic shadow rendering and animated parabolic lander relocation.
-- **5-DOF Solar-Tracking Robotic Arm**: Executes real-time closed-form inverse kinematics (IK) constrained by anatomical safe joint limits, projecting a visual 5-ray alignment frustum that maintains the solar panel perpendicular to the polar Sun.
-- **Hardware-In-The-Loop (HIL) Teleoperation**: Microsecond-responsive dual-core FreeRTOS firmware running on an ESP32-S3 microcontroller coupled to a PCA9685 16-channel 12-bit PWM servo controller over I2C, streaming live photovoltaic ADC telemetry and receiving joint commands over secure cloud WebSockets (<150 ms latency).
+Lunar Landing Site Navigator is an integrated cyber-physical mission control platform that tackles lunar south polar landing and power starvation hazards for NASA's Artemis program:
+• Planetary Data Ingestion: Ingests high-resolution NASA Lunar Reconnaissance Orbiter (LRO) LOLA laser altimeter digital elevation models (DEM), LRO Diviner thermal radiometer brightness maps, and LRO LEND epithermal neutron hydrogen indicators.
+• Multi-Criteria Decision Analysis (MCDA): Evaluates 4 candidate Artemis landing sites (Connecting Ridge, North Peak, Malapert Mountain, Faustini Rim A) using an objective weighting framework combining slope stability (35%), solar illumination continuity (25%), Direct-to-Earth communication line of sight (20%), water-ice proximity (10%), and thermal extremes (10%).
+• Autonomous Safe Zone Delineation: Filters topographic hazards (Sobel/Horn gradient slopes and RMS surface roughness) to pinpoint the Top 5 Safe Touchdown Footprints (100 m radius, slope < 5°, roughness < 0.15 m).
+• Interactive 3D WebGL Digital Twin (Three.js): Transitions seamlessly from a macro-scale 3D Moon globe with real LROC optical albedo down to a 256x256 LOLA surface mesh, with dynamic shadow rendering and animated parabolic lander relocation.
+• 5-DOF Solar-Tracking Robotic Arm: Executes real-time closed-form inverse kinematics (IK) constrained by anatomical safe joint limits, projecting a visual 5-ray alignment frustum that maintains the solar panel perpendicular to the polar Sun.
+• Hardware-In-The-Loop (HIL) Teleoperation: Dual-core FreeRTOS firmware running on an ESP32-S3 microcontroller coupled to a PCA9685 16-channel 12-bit PWM servo controller over I2C, streaming live photovoltaic ADC telemetry and receiving joint commands over secure cloud WebSockets (<150 ms latency).
+
+---
 
 ### 2. What benefits does it offer?
-- **The 50.1x Energy Harvest Multiplier**: Near the lunar south pole, solar elevation oscillates between 0.8° and 1.5°. A fixed horizontal solar panel intercepts a fraction proportional to sin(1.1°) ≈ 0.0192, yielding merely 315 Wh across 7 days (causing battery exhaustion in 18 hours). Our active 5-DOF tracking arm delivers full normal irradiance (1,361 W/m²), yielding 15,795 Wh—a 50.1-fold energy increase that keeps lander survival heaters active and sustains battery State of Charge above 23.8%.
-- **Landing Hazard Elimination**: Prevents catastrophic lander tip-over or structural landing gear failure by autonomously excluding steep crater rims and high-relief boulder zones.
-- **Immediate Scientific Return**: Pinpoints safe touchdown zones within 5.6 km of cryogenic PSR water-ice cold traps (<40 K), maximizing In-Situ Resource Utilization (ISRU) sample returns.
+• The 50.1x Energy Harvest Multiplier: Near the lunar south pole, solar elevation oscillates between 0.8° and 1.5°. A fixed horizontal solar panel intercepts a fraction proportional to sin(1.1°) ≈ 0.0192, yielding merely 315 Wh across 7 days (causing battery exhaustion in 18 hours). Our active 5-DOF tracking arm delivers full normal irradiance (1,361 W/m²), yielding 15,795 Wh—a 50.1-fold energy increase that keeps lander survival heaters active and sustains battery State of Charge above 23.8%.
+• Landing Hazard Elimination: Prevents catastrophic lander tip-over or structural landing gear failure by autonomously excluding steep crater rims and high-relief boulder zones.
+• Immediate Scientific Return: Pinpoints safe touchdown zones within 5.6 km of cryogenic PSR water-ice cold traps (<40 K), maximizing In-Situ Resource Utilization (ISRU) sample returns.
+
+---
 
 ### 3. What is the expected impact?
 The platform serves as an operational blueprint for Artemis lunar surface architectures, human landers, and uncrewed robotic precursors. By converting a critical power vulnerability into a continuous energy harvest and integrating digital twin simulations with physical edge hardware, it significantly lowers mission risk, maximizes robotic survival time across the lunar day/night cycle, and demonstrates low-latency remote teleoperation.
 
+---
+
 ### 4. What tools, languages, hardware, and software were used?
-- **Software & Backend**: Python 3.12, FastAPI (asynchronous REST & WebSocket server), Uvicorn ASGI, NumPy, SciPy, Pandas, PyArrow, Tifffile.
-- **Frontend & 3D Engine**: Three.js (r128), OrbitControls, HTML5, CSS3 NASA Dark-Theme, modern ES6+ JavaScript, WebGL 2.0.
-- **Cloud Infrastructure**: Google Cloud Run (containerized Docker deployment with session affinity and TLS encryption).
-- **Embedded Hardware**: ESP32-S3 Dual-Core Xtensa LX7 @ 240 MHz, PCA9685 16-Channel 12-bit PWM I2C driver (SDA: GPIO 8, SCL: GPIO 9), 5x high-torque metal-gear servos, photovoltaic voltage divider sensor (GPIO 1 ADC).
-- **Mechanical CAD & Manufacturing**: Dassault Systèmes SolidWorks (complete assemblies .SLDASM and parts .SLDPRT), STL 3D printing slicing and fabrication.
-
-### 5. In what sense is the project creative?
-We bridged the gap between pure data science and physical robotics: rather than treating lunar landing selection as a static map exercise, we created an active cyber-physical system. The combination of closed-form inverse kinematics with an interactive 5-ray visual alignment frustum directly proves the mathematical physics of polar solar tracking, while physical hardware synchronizes with the digital twin in real time across the cloud.
-
-### 6. What factors did the team take into account?
-- **Astronomical Geometry**: Modeled exact topocentric solar vectors and direct Earth visibility profiles using NASA JPL Horizons ephemerides.
-- **Cryogenic Survival**: Integrated LRO Diviner thermal measurements (<40 K cold traps) to balance solar power availability with thermal preservation.
-- **Mechanical & Electrical Constraints**: Programmed strict servo angle boundaries (Base 25°–155°, Shoulder 35°–115°, Elbow 40°–125°, Wrist 40°–135°, Panel 30°–150°) with soft ramps to prevent mechanical binding, servo stall, and electrical brownouts.
-- **Zero-Trust Security**: Sanitized all credentials, using clean environment variables (.env) and public cloud endpoints without hardcoded tokens.
+• Software & Backend: Python 3.12, FastAPI (asynchronous REST & WebSocket server), Uvicorn ASGI, NumPy, SciPy, Pandas, PyArrow, Tifffile.
+• Frontend & 3D Engine: Three.js (r128), OrbitControls, HTML5, CSS3 NASA Dark-Theme, modern ES6+ JavaScript, WebGL 2.0.
+• Cloud Infrastructure: Google Cloud Run (containerized Docker deployment with session affinity and TLS encryption).
+• Embedded Hardware: ESP32-S3 Dual-Core Xtensa LX7 @ 240 MHz, PCA9685 16-Channel 12-bit PWM I2C driver (SDA: GPIO 8, SCL: GPIO 9), 5x high-torque metal-gear servos, photovoltaic voltage divider sensor (GPIO 1 ADC).
+• Mechanical CAD & Manufacturing: Dassault Systèmes SolidWorks (assemblies .SLDASM and parts .SLDPRT), STL 3D printing slicing and fabrication.
 
 ---
-[TRADUCCION AL ESPAÑOL DE REFERENCIA]:
-(Sección 1: ¿Qué hace y cómo funciona? Análisis orbital LRO, decisión multicriterio MCDA, delimitación de 5 zonas seguras en Connecting Ridge, gemelo digital 3D en Three.js, brazo robótico 5-DOF con cinemática inversa y teleoperación hardware-in-the-loop por WebSockets).
-(Sección 2: ¿Qué beneficios ofrece? Multiplicador solar de 50.1x que evita la congelación y agotamiento de la batería, eliminación de riesgos de aterrizaje y proximidad a depósitos de hielo PSR).
-(Sección 3: Impacto previsto: Arquitectura para misiones Artemis, mitigación de riesgos y supervivencia robótica polar).
-(Sección 4: Herramientas: Python, FastAPI, Three.js, Docker, Cloud Run, ESP32-S3, PCA9685 I2C, SolidWorks e impresión 3D).
-(Sección 5: Creatividad: Unificación de gemelo digital 3D y hardware físico en el bucle sincronizado en la nube).
-(Sección 6: Factores considerados: Efemérides astronómicas JPL Horizons, temperaturas criogénicas Diviner, límites mecánicos seguros y seguridad de credenciales).
+
+### 5. In what sense is the project creative and innovative?
+We bridged the gap between pure data science and physical robotics: rather than treating lunar landing selection as a static map exercise, we created an active cyber-physical system. The combination of closed-form inverse kinematics with an interactive 5-ray visual alignment frustum directly proves the mathematical physics of polar solar tracking, while physical hardware synchronizes with the digital twin in real time across the cloud.
+
+---
+
+### 6. What critical factors did the team take into account?
+• Astronomical Geometry: Modeled exact topocentric solar vectors and direct Earth visibility profiles using NASA JPL Horizons ephemerides.
+• Cryogenic Survival: Integrated LRO Diviner thermal measurements (<40 K cold traps) to balance solar power availability with thermal preservation.
+• Mechanical & Electrical Constraints: Programmed strict servo angle boundaries (Base 25°–155°, Shoulder 35°–115°, Elbow 40°–125°, Wrist 40°–135°, Panel 30°–150°) with soft ramps to prevent mechanical binding, servo stall, and electrical brownouts.
+• Zero-Trust Security: Sanitized all credentials, using clean environment variables (.env) and public cloud endpoints without hardcoded tokens.
+
+==============================================================================
+📂 COMPLETE REPOSITORY & 3D PRINTABLE ASSETS:
+Explore the complete code repository, technical documentation, SolidWorks assemblies, and 3D printable STL files at:
+👉 https://github.com/MirlonAndres/lunar-landing-site-navigator#readme
+==============================================================================
 
 
 --------------------------------------------------------------------------------
@@ -121,7 +124,7 @@ Selecciona:
 [x] "Código y datos" (Code and data)
 [x] "Texto descriptivo y documentación" (Text / documentation)
 
->>> SI HAY UN CAMPO DE TEXTO PARA EXPLICAR SU USO, PEGA ESTO:
+>>> EN EL CAMPO DE TEXTO EXPLICATIVO (SI LO PIDE), PEGA ESTO:
 "AI assistance (Google DeepMind Antigravity / Gemini) was utilized to accelerate codebase scaffolding, assist with LaTeX mathematical formulation, support English documentation translation, and aid in code refactoring. All core engineering designs, SolidWorks 3D CAD modeling, ESP32-S3 circuit wiring, PCA9685 PWM calibration, and NASA scientific dataset ingestion pipelines were conceived, built, and validated by the team."
 
 
