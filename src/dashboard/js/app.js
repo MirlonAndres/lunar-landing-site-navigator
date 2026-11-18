@@ -98,11 +98,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   ];
 
   const JOINT_LIMITS = [
-    [25, 155], // 1. Base Turntable
-    [35, 110], // 2. Shoulder Pitch
-    [40, 120], // 3. Elbow Flexion
-    [45, 130], // 4. Wrist Tilt (panel clearance)
-    [35, 145]  // 5. Panel Roll (panel corner clearance)
+    [0, 180],  // 1. Base Turntable (full 180 deg)
+    [0, 180],  // 2. Shoulder Pitch (full 180 deg)
+    [20, 160], // 3. Elbow Flexion (20 to 160 deg)
+    [0, 180],  // 4. Virtual Wrist carrier
+    [0, 180]   // 5. Panel Roll (full 180 deg)
   ];
 
   const PRESETS = {
@@ -120,6 +120,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let lastFrame = null;
   let toastTimer = null;
   let lastLocalCommandMs = 0;
+  let wasEspOnline = false;
 
   function showToast(text) {
     toastEl.textContent = text;
@@ -148,21 +149,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // 2. Initialize Telemetry Client
   const telemetry = new TelemetryClient({
-    onLinkStatus: (link) => renderLinkStatus(link),
+    onLinkStatus: (link) => {
+      renderLinkStatus(link);
+      const isOnline = link && link.esp32_state === "ONLINE";
+      if (isOnline && !wasEspOnline) {
+        // Immediately sync current calibrated web mirror angles to the newly connected ESP32-S3
+        const curAngles = sliders.map((el) => parseInt(el.value, 10));
+        telemetry.sendArmCommand(curAngles, "MANUAL");
+      }
+      wasEspOnline = Boolean(isOnline);
+    },
     onTelemetry: (data) => {
       if (appMode === "LIVE") {
         renderLiveSensors(data);
-        // Bidirectional Mirror Sync: when ESP32 reports calibrated/actual angles and user isn't actively dragging a slider, mirror 1:1
-        if (
-          Array.isArray(data.angles) &&
-          data.angles.length === 5 &&
-          performance.now() - lastLocalCommandMs > 1400 &&
-          !twin._dustRoutineActive
-        ) {
-          const synced = twin.clampArmAngles(data.angles);
-          setSlidersUI(synced);
-          twin.updateArmJoints(synced);
-        }
       }
     }
   });
@@ -686,47 +685,55 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
-  // 180-Deg Physical Servo Calibration & Auto-Home Controls
+  // 180-Deg Physical Servo Calibration & Auto-Home Controls (4 Physical Servos)
   const btnAutoCal = $("btn-autocal");
   const btnToggleCal = $("btn-toggle-cal");
   const btnResetCal = $("btn-reset-cal");
   const calDrawer = $("cal-drawer");
   const calRowsEl = $("cal-rows");
-  const jointNamesShort = ["1. Base", "2. Shoulder", "3. Elbow", "4. Wrist", "5. Roll"];
+  const physicalJoints = [
+    { idx: 0, name: "1. Base (0–180°)" },
+    { idx: 1, name: "2. Shoulder (0–180°)" },
+    { idx: 2, name: "3. Elbow (20–160°)" },
+    { idx: 4, name: "4. Panel Roll (0–180°)" }
+  ];
   let servoTrim = [0, 0, 0, 0, 0];
   let servoDir = [1, 1, 1, 1, 1];
   try {
     const savedCal = JSON.parse(localStorage.getItem("esp32_servo_cal") || "null");
     if (savedCal && Array.isArray(savedCal.trim) && Array.isArray(savedCal.dir)) {
-      servoTrim = savedCal.trim.map((n) => Math.max(-45, Math.min(45, Number(n) || 0)));
+      servoTrim = savedCal.trim.map((n) => Math.max(-60, Math.min(60, Number(n) || 0)));
       servoDir = savedCal.dir.map((n) => (Number(n) < 0 ? -1 : 1));
     }
   } catch (_) {}
 
   function pushCalibrationToESP32() {
+    // Mirror Panel Roll (index 4) calibration to index 3 so both PCA9685 CH3 & CH4 match
+    servoTrim[3] = servoTrim[4];
+    servoDir[3] = servoDir[4];
     try {
       localStorage.setItem("esp32_servo_cal", JSON.stringify({ trim: servoTrim, dir: servoDir }));
     } catch (_) {}
-    const calModeStr = `CAL:${servoTrim.join(",")}:${servoDir.join(",")}`;
     const curAngles = sliders.map((el) => parseInt(el.value, 10));
     lastLocalCommandMs = performance.now();
-    telemetry.sendArmCommand(curAngles, calModeStr);
+    // telemetry.sendArmCommand applies servoTrim & servoDir directly to target_angles
+    telemetry.sendArmCommand(curAngles, "MANUAL");
   }
 
   function renderCalibrationRows() {
     if (!calRowsEl) return;
     calRowsEl.innerHTML = "";
-    jointNamesShort.forEach((name, idx) => {
+    physicalJoints.forEach(({ idx, name }) => {
       const row = document.createElement("div");
       row.style.cssText = "display:flex; align-items:center; justify-content:space-between; gap:4px; padding:2px 0;";
       const dirLabel = servoDir[idx] > 0 ? "Norm (+)" : "Inv (-)";
       const sign = servoTrim[idx] > 0 ? "+" : "";
       row.innerHTML = `
-        <span style="min-width:66px; color:var(--text-1);">${name}</span>
+        <span style="min-width:96px; color:var(--text-1); font-weight:500;">${name}</span>
         <div style="display:flex; align-items:center; gap:3px;">
-          <button type="button" class="btn small" data-trim-idx="${idx}" data-trim-step="-2" style="padding:1px 6px;">-2°</button>
+          <button type="button" class="btn small" data-trim-idx="${idx}" data-trim-step="-5" style="padding:1px 6px;">-5°</button>
           <b style="min-width:34px; text-align:center; font-variant-numeric:tabular-nums;">${sign}${servoTrim[idx]}°</b>
-          <button type="button" class="btn small" data-trim-idx="${idx}" data-trim-step="2" style="padding:1px 6px;">+2°</button>
+          <button type="button" class="btn small" data-trim-idx="${idx}" data-trim-step="5" style="padding:1px 6px;">+5°</button>
           <button type="button" class="btn small ${servoDir[idx] < 0 ? "primary" : ""}" data-dir-idx="${idx}" style="padding:1px 6px; min-width:54px;">${dirLabel}</button>
         </div>
       `;
@@ -737,10 +744,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       b.addEventListener("click", () => {
         const i = Number(b.getAttribute("data-trim-idx"));
         const step = Number(b.getAttribute("data-trim-step"));
-        servoTrim[i] = Math.max(-45, Math.min(45, servoTrim[i] + step));
+        servoTrim[i] = Math.max(-60, Math.min(60, servoTrim[i] + step));
         renderCalibrationRows();
         pushCalibrationToESP32();
-        showToast(`${jointNamesShort[i]} trim: ${servoTrim[i] > 0 ? "+" : ""}${servoTrim[i]}° (saved to ESP32)`);
+        showToast(`Servo trim: ${servoTrim[i] > 0 ? "+" : ""}${servoTrim[i]}° applied to physical arm`);
       });
     });
 
@@ -750,7 +757,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         servoDir[i] = -servoDir[i];
         renderCalibrationRows();
         pushCalibrationToESP32();
-        showToast(`${jointNamesShort[i]} direction: ${servoDir[i] > 0 ? "Normal (+)" : "Inverted (-)"}`);
+        showToast(`Servo direction: ${servoDir[i] > 0 ? "Normal (+)" : "Inverted (180° - θ)"}`);
       });
     });
   }

@@ -57,21 +57,20 @@ const char* DEVICE_TOKEN  = "YOUR_DEVICE_TOKEN_HERE";
 
 // ================= 5. KINEMATICS, CALIBRATION & PANEL LIMITS =======
 // Calibrated reference Home posture matching the 3D Web Digital Twin:
-// [j0: Base, j1: Shoulder, j2: Elbow, j3: Wrist, j4: Panel Roll]
-const float SERVO_HOME_DEG[5] = {90.0f, 55.0f, 60.0f, 70.0f, 90.0f};
+// [j0: Base, j1: Shoulder, j2: Elbow, j3: Panel CH3, j4: Panel CH4]
+const float SERVO_HOME_DEG[5] = {90.0f, 55.0f, 60.0f, 90.0f, 90.0f};
 
-// Individual anatomical & solar-panel clearance limits [deg]
-const float SERVO_MIN_DEG[5]  = {25.0f, 35.0f, 40.0f, 45.0f, 35.0f};
-const float SERVO_MAX_DEG[5]  = {155.0f, 110.0f, 120.0f, 130.0f, 145.0f};
+// Exact physical 4-servo limits:
+// 1. Base (0-180), 2. Shoulder (0-180), 3. Elbow (20-160), 4. Panel Roll (0-180 on CH3 & CH4)
+const float SERVO_MIN_DEG[5]  = {0.0f, 0.0f, 20.0f, 0.0f, 0.0f};
+const float SERVO_MAX_DEG[5]  = {180.0f, 180.0f, 160.0f, 180.0f, 180.0f};
 
 // Persistent per-servo calibration stored in ESP32 NVS Flash:
-// servoTrim[i]: fine degree offset (-45..+45 deg) to align physical spline teeth
-// servoDir[i]:  +1 (normal) or -1 (inverted around SERVO_HOME_DEG[i])
 float   servoTrim[5] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 int8_t  servoDir[5]  = {1, 1, 1, 1, 1};
 
-float currentAngles[5] = {90.0f, 55.0f, 60.0f, 70.0f, 90.0f};
-float targetAngles[5]  = {90.0f, 55.0f, 60.0f, 70.0f, 90.0f};
+float currentAngles[5] = {90.0f, 55.0f, 60.0f, 90.0f, 90.0f};
+float targetAngles[5]  = {90.0f, 55.0f, 60.0f, 90.0f, 90.0f};
 char  currentMode[24]  = "AUTO_SUN_TRACK";
 
 bool pca9685_connected = false;
@@ -123,47 +122,21 @@ void saveCalibrationToFlash() {
   Serial.println("[CAL] Calibration saved permanently to ESP32 NVS Flash.");
 }
 
-// ================= 7. SOLAR PANEL PHYSICAL COLLISION GUARD =========
+// ================= 7. 4-SERVO PHYSICAL LIMITS & PANEL MIRRORING ====
 /**
- * Enforces individual joint limits AND coupled multi-joint geometric constraints
- * dictated by the physical dimensions of the rectangular solar panel at the wrist:
- * 1. Prevents panel bottom edge from hitting the table/base when shoulder+elbow extend forward.
- * 2. Prevents panel back face from hitting the forearm when elbow is tightly flexed.
- * 3. Prevents panel corners from clipping the forearm when wrist is steeply pitched.
+ * Enforces the exact 4-servo physical limits:
+ * - Joint 0 (CH0 Base): 0 to 180 deg
+ * - Joint 1 (CH1 Shoulder): 0 to 180 deg
+ * - Joint 2 (CH2 Elbow): 20 to 160 deg
+ * - Joint 3 & 4 (CH3 & CH4 Panel Roll): 0 to 180 deg (mirrored so either PCA9685 pin works!)
  */
 void applyPanelCollisionConstraints(float angles[5]) {
-  // 1. Individual 180-deg joint safety bounds
+  // Mirror 4th physical servo (Panel Roll) onto both CH3 and CH4
+  angles[3] = angles[4];
+
   for (int i = 0; i < 5; i++) {
     if (isnan(angles[i])) angles[i] = SERVO_HOME_DEG[i];
     angles[i] = constrain(angles[i], SERVO_MIN_DEG[i], SERVO_MAX_DEG[i]);
-  }
-
-  // 2. Coupled Ground/Base Clearance Guard (Shoulder j1 + Elbow j2 + Wrist j3)
-  // If shoulder leans forward (j1 > 70) and elbow drops down (j2 > 75), limit combined reach
-  float reachSum = angles[1] + angles[2];
-  if (reachSum > 165.0f) {
-    float excess = reachSum - 165.0f;
-    angles[2] = constrain(angles[2] - excess * 0.6f, SERVO_MIN_DEG[2], SERVO_MAX_DEG[2]);
-    angles[1] = constrain(angles[1] - excess * 0.4f, SERVO_MIN_DEG[1], SERVO_MAX_DEG[1]);
-  }
-  // When arm reaches low (j1 + j2 > 145), prevent wrist from pitching the panel edge into the table
-  if ((angles[1] + angles[2]) > 145.0f) {
-    float maxSafeWrist = 115.0f - ((angles[1] + angles[2]) - 145.0f) * 0.75f;
-    if (angles[3] > maxSafeWrist) {
-      angles[3] = constrain(maxSafeWrist, 55.0f, SERVO_MAX_DEG[3]);
-    }
-  }
-
-  // 3. Coupled Forearm Self-Collision Guard
-  // When elbow is tightly folded (j2 < 52 deg), keep wrist away from upper arm
-  if (angles[2] < 52.0f) {
-    angles[3] = constrain(angles[3], 55.0f, 115.0f);
-  }
-
-  // 4. Solar Panel Corner Roll Guard
-  // When wrist is pitched steeply (< 58 deg or > 110 deg), narrow roll (j4) so panel corners clear forearm
-  if (angles[3] < 58.0f || angles[3] > 110.0f) {
-    angles[4] = constrain(angles[4], 55.0f, 125.0f);
   }
 }
 
@@ -204,19 +177,14 @@ bool initPCA9685() {
 }
 
 /**
- * Converts logical web angle (deg) -> calibrated 180-deg hardware angle -> staggered PCA9685 PWM ticks.
+ * Converts 0-180 deg angle -> staggered PCA9685 PWM ticks (102..512 ticks at 50 Hz).
  * Uses staggered phase offset (onTick = channel * 200) to prevent simultaneous current spikes!
  */
 void writeServoHardware(uint8_t channel, float webAngleDeg) {
   if (!pca9685_connected || channel >= 5) return;
 
-  // Apply per-joint direction and trim calibration around Home reference
-  float hwAngle = SERVO_HOME_DEG[channel]
-                + (float)servoDir[channel] * (webAngleDeg - SERVO_HOME_DEG[channel])
-                + servoTrim[channel];
-
-  // Clamp strictly within 180-deg servo physical boundaries (5..175 deg) to prevent end-stop stall
-  hwAngle = constrain(hwAngle, 5.0f, 175.0f);
+  float oriented = (servoDir[channel] < 0) ? (180.0f - webAngleDeg) : webAngleDeg;
+  float hwAngle  = constrain(oriented + servoTrim[channel], 0.0f, 180.0f);
 
   uint16_t pulseTicks = map((long)(hwAngle * 10.0f), 0, 1800, SERVO_TICK_MIN, SERVO_TICK_MAX);
   uint16_t onTick     = (uint16_t)channel * 200; // Phase stagger across 20ms frame
@@ -339,51 +307,24 @@ bool executeCommand(const char* k, JsonVariantConst v, JsonDocument& rootDoc) {
   if (strcmp(k, "arm") == 0 || strcmp(k, "") == 0) {
     const char* m = v["m"] | rootDoc["mode"] | "MANUAL";
 
-    // Check if command requests auto-calibration or trim/direction update
-    if (strcmp(m, "CALIBRATE") == 0 || (v["recal"] | false)) {
-      runAutoCalibrationRoutine();
-      return true;
-    }
-
-    // Parse compact web calibration string "CAL:t0,t1,t2,t3,t4:d0,d1,d2,d3,d4"
-    if (strncmp(m, "CAL:", 4) == 0) {
-      float t[5] = {0, 0, 0, 0, 0};
-      int d[5]   = {1, 1, 1, 1, 1};
-      if (sscanf(m + 4, "%f,%f,%f,%f,%f:%d,%d,%d,%d,%d",
-                 &t[0], &t[1], &t[2], &t[3], &t[4],
-                 &d[0], &d[1], &d[2], &d[3], &d[4]) == 10) {
-        for (int i = 0; i < 5; i++) {
-          servoTrim[i] = constrain(t[i], -45.0f, 45.0f);
-          servoDir[i]  = (d[i] < 0) ? -1 : 1;
-        }
-        saveCalibrationToFlash();
-        for (int i = 0; i < 5; i++) writeServoHardware(i, currentAngles[i]);
-      }
-    }
-
-    // Check for live trim / direction calibration arrays inside 'v'
-    JsonArrayConst trimArr = v["trim"];
-    JsonArrayConst dirArr  = v["dir"];
-    bool calChanged = false;
-    if (!trimArr.isNull() && trimArr.size() >= 5) {
-      for (int i = 0; i < 5; i++) {
-        servoTrim[i] = constrain(trimArr[i].as<float>(), -45.0f, 45.0f);
-      }
-      calChanged = true;
-    }
-    if (!dirArr.isNull() && dirArr.size() >= 5) {
-      for (int i = 0; i < 5; i++) {
-        servoDir[i] = (dirArr[i].as<int>() < 0) ? -1 : 1;
-      }
-      calChanged = true;
-    }
-    if (calChanged) {
-      saveCalibrationToFlash();
-      for (int i = 0; i < 5; i++) writeServoHardware(i, currentAngles[i]);
-    }
-
     JsonArrayConst arr = v["a"];
     if (arr.isNull()) arr = rootDoc["target_angles"].as<JsonArrayConst>();
+
+    // Check if command requests auto-calibration
+    if (strcmp(m, "CALIBRATE") == 0 || (v["recal"] | false)) {
+      runAutoCalibrationRoutine();
+      if (!arr.isNull() && arr.size() >= 5) {
+        float requested[5];
+        for (int i = 0; i < 5; i++) requested[i] = arr[i].as<float>();
+        applyPanelCollisionConstraints(requested);
+        for (int i = 0; i < 5; i++) {
+          targetAngles[i]  = requested[i];
+          currentAngles[i] = requested[i];
+          writeServoHardware(i, currentAngles[i]);
+        }
+      }
+      return true;
+    }
 
     if (!arr.isNull() && arr.size() >= 5) {
       float requested[5];

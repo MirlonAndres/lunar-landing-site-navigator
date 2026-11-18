@@ -220,24 +220,24 @@
 
         <div style="display:flex; flex-direction:column; gap:12px; padding-top:4px;">
           <div class="joint">
-            <div class="joint-head"><span>1. Base Turntable <em>(25° – 155° yaw)</em></span><b id="lbl-j0">90°</b></div>
-            <input type="range" id="j0" min="25" max="155" value="90" style="--val:50%">
+            <div class="joint-head"><span>1. Base Turntable <em>(0° – 180° yaw)</em></span><b id="lbl-j0">90°</b></div>
+            <input type="range" id="j0" min="0" max="180" value="90" style="--val:50%">
           </div>
           <div class="joint">
-            <div class="joint-head"><span>2. Shoulder <em>(35° – 110° pitch)</em></span><b id="lbl-j1">55°</b></div>
-            <input type="range" id="j1" min="35" max="110" value="55" style="--val:26.7%">
+            <div class="joint-head"><span>2. Shoulder <em>(0° – 180° pitch)</em></span><b id="lbl-j1">55°</b></div>
+            <input type="range" id="j1" min="0" max="180" value="55" style="--val:30.6%">
           </div>
           <div class="joint">
-            <div class="joint-head"><span>3. Elbow <em>(40° – 120° flexion)</em></span><b id="lbl-j2">60°</b></div>
-            <input type="range" id="j2" min="40" max="120" value="60" style="--val:25%">
+            <div class="joint-head"><span>3. Elbow <em>(20° – 160° flexion)</em></span><b id="lbl-j2">60°</b></div>
+            <input type="range" id="j2" min="20" max="160" value="60" style="--val:28.6%">
+          </div>
+          <div class="joint" style="display:none;">
+            <div class="joint-head"><span>Wrist <em>(virtual)</em></span><b id="lbl-j3">70°</b></div>
+            <input type="range" id="j3" min="0" max="180" value="70" style="--val:38.9%">
           </div>
           <div class="joint">
-            <div class="joint-head"><span>4. Wrist <em>(45° – 130° panel clearance)</em></span><b id="lbl-j3">70°</b></div>
-            <input type="range" id="j3" min="45" max="130" value="70" style="--val:29.4%">
-          </div>
-          <div class="joint">
-            <div class="joint-head"><span>5. Panel Roll <em>(35° – 145° roll)</em></span><b id="lbl-j4">90°</b></div>
-            <input type="range" id="j4" min="35" max="145" value="90" style="--val:50%">
+            <div class="joint-head"><span>4. Panel Roll <em>(0° – 180° roll)</em></span><b id="lbl-j4">90°</b></div>
+            <input type="range" id="j4" min="0" max="180" value="90" style="--val:50%">
           </div>
         </div>
 
@@ -251,7 +251,7 @@
               Fine Trim
             </button>
           </div>
-          <div id="cal-drawer" class="hide" style="background:var(--bg-soft); border:1px solid var(--border); border-radius:8px; padding:8px; display:flex; flex-direction:column; gap:6px; font-size:11.5px;">
+          <div id="cal-drawer" style="background:var(--bg-soft); border:1px solid var(--border); border-radius:8px; padding:8px; display:flex; flex-direction:column; gap:6px; font-size:11.5px;">
             <div style="display:flex; justify-content:space-between; align-items:center; color:var(--text-2); font-weight:600;">
               <span>180° Servo Trim & Direction</span>
               <button class="btn small" id="btn-reset-cal" style="padding:2px 6px; font-size:10.5px;">Reset 0°</button>
@@ -348,9 +348,9 @@
 
   <div class="kbd-hint">Shortcuts: <kbd>Space</kbd> simulate · <kbd>R</kbd> center · <kbd>G</kbd> globe</div>
 
-  <script src="js/telemetry.js?v=20261118a"></script>
-  <script src="js/terrain_view.js?v=20261118a"></script>
-  <script src="js/simulation.js?v=20261118a"></script>
-  <script src="js/app.js?v=20261118a"></script>
+  <script src="js/telemetry.js?v=20261118b"></script>
+  <script src="js/terrain_view.js?v=20261118b"></script>
+  <script src="js/simulation.js?v=20261118b"></script>
+  <script src="js/app.js?v=20261118b"></script>
 </body>
 </html>

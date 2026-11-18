@@ -1,10 +1,17 @@
 /**
  * Telemetry and Real-Time Hardware Relay Client
+ * Cliente de Telemetria y Retransmision de Hardware en Tiempo Real
  * NASA Space Apps Challenge 2026 - Lunar Landing Site Navigator
  *
+ * English:
  * Manages the WebSocket connection to the FastAPI backend, reports true ESP32
  * hardware presence (with 10 s staleness detection), and throttles outbound 5-DOF
  * servo commands to <= 16 Hz with trailing-edge flush so slider dragging stays smooth.
+ *
+ * Espanol:
+ * Administra la conexion WebSocket con el servidor FastAPI, informa la presencia
+ * real del ESP32 (con caducidad a los 10 s) y limita el envio de comandos de los 5
+ * servos a <= 16 Hz con envio final garantizado para un arrastre fluido.
  */
 
 class TelemetryClient {
@@ -120,15 +127,34 @@ class TelemetryClient {
   }
 
   /**
-   * Throttled dispatch of 5-DOF servo angles (at most once per 60 ms + trailing flush).
-   * Envio regulado de los 5 angulos de servo (maximo una vez cada 60 ms + envio final).
+   * Throttled dispatch of servo angles (at most once per 60 ms + trailing flush).
+   * Applies live 180-deg servo calibration (trim offset & direction invert) and maps
+   * the 4th physical axis (Panel Roll 0-180) to both index 3 and index 4 (PCA9685 CH3 & CH4).
    */
   sendArmCommand(angles, mode = "MANUAL") {
-    const limits = [[25, 155], [35, 115], [40, 125], [40, 135], [30, 150]];
+    const limits = [[0, 180], [0, 180], [20, 160], [0, 180], [0, 180]];
+    let trim = [0, 0, 0, 0, 0];
+    let dir = [1, 1, 1, 1, 1];
+    try {
+      const saved = JSON.parse(localStorage.getItem("esp32_servo_cal") || "null");
+      if (saved && Array.isArray(saved.trim) && Array.isArray(saved.dir)) {
+        trim = saved.trim.map((n) => Number(n) || 0);
+        dir = saved.dir.map((n) => (Number(n) < 0 ? -1 : 1));
+      }
+    } catch (_) {}
+
     const clean = angles.map((a, i) => {
       const [minA, maxA] = limits[i] || [0, 180];
-      return Math.max(minA, Math.min(maxA, Math.round(Number(a) || 90)));
+      let val = Number(a);
+      if (Number.isNaN(val)) val = 90;
+      // Apply direction inversion (180 - angle) and trim offset
+      const oriented = dir[i] < 0 ? (180 - val) : val;
+      const calibrated = oriented + (trim[i] || 0);
+      return Math.max(minA, Math.min(maxA, Math.round(calibrated)));
     });
+    // Physical arm has 4 servos: Base (CH0), Shoulder (CH1), Elbow (CH2), and Panel Roll (CH3/CH4)
+    clean[3] = clean[4];
+
     this._pendingCmd = { type: "command", target_angles: clean, mode };
 
     const now = performance.now();
