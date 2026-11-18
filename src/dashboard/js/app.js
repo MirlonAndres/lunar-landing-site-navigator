@@ -99,17 +99,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const JOINT_LIMITS = [
     [25, 155], // 1. Base Turntable
-    [35, 115], // 2. Shoulder Pitch
-    [40, 125], // 3. Elbow Flexion
-    [40, 135], // 4. Wrist Tilt
-    [30, 150]  // 5. Panel Roll
+    [35, 110], // 2. Shoulder Pitch
+    [40, 120], // 3. Elbow Flexion
+    [45, 130], // 4. Wrist Tilt (panel clearance)
+    [35, 145]  // 5. Panel Roll (panel corner clearance)
   ];
 
   const PRESETS = {
-    home:   { angles: [90, 55, 60, 70, 90],  label: "Arm balanced home position" },
-    sample: { angles: [90, 95, 85, 115, 90], label: "Lunar regolith sampling" },
-    stow:   { angles: [90, 40, 45, 50, 90],  label: "Arm stowed (lunar night hibernation)" },
-    dust:   { angles: [90, 70, 75, 110, 90], label: "Electrostatic dust-shedding routine (regolith clearing)" }
+    home:   { angles: [90, 55, 60, 70, 90],  label: "Arm balanced home position (180° calibrated)" },
+    sample: { angles: [90, 82, 78, 95, 90],  label: "Lunar regolith sampling (panel clearance guarded)" },
+    stow:   { angles: [90, 42, 52, 60, 90],  label: "Arm stowed (lunar night hibernation)" },
+    dust:   { angles: [90, 68, 72, 105, 90], label: "Electrostatic dust-shedding routine (regolith clearing)" }
   };
 
   let appMode = "LIVE";     // "LIVE" | "DEMO" (starts in LIVE hardware streaming mode)
@@ -119,6 +119,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let selectedSiteIdx = 0;
   let lastFrame = null;
   let toastTimer = null;
+  let lastLocalCommandMs = 0;
 
   function showToast(text) {
     toastEl.textContent = text;
@@ -151,6 +152,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     onTelemetry: (data) => {
       if (appMode === "LIVE") {
         renderLiveSensors(data);
+        // Bidirectional Mirror Sync: when ESP32 reports calibrated/actual angles and user isn't actively dragging a slider, mirror 1:1
+        if (
+          Array.isArray(data.angles) &&
+          data.angles.length === 5 &&
+          performance.now() - lastLocalCommandMs > 1400 &&
+          !twin._dustRoutineActive
+        ) {
+          const synced = twin.clampArmAngles(data.angles);
+          setSlidersUI(synced);
+          twin.updateArmJoints(synced);
+        }
       }
     }
   });
@@ -217,15 +229,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   } finally {
     setTimeout(() => {
       loader.style.opacity = "0";
-      setTimeout(() => {
-        loader.classList.add("hide");
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get("view") === "surface") {
-          enterSurfaceView(() => {
-            twin.focusOnArm();
-          });
-        }
-      }, 600);
+      setTimeout(() => loader.classList.add("hide"), 600);
     }, 250);
   }
 
@@ -672,19 +676,121 @@ document.addEventListener("DOMContentLoaded", async () => {
     s.addEventListener("input", () => {
       if (armMode !== "MANUAL") setArmMode("MANUAL", false);
       highlightPreset(null);
-      const angles = sliders.map((el) => parseInt(el.value, 10));
-      setSlidersUI(angles);
-      twin.updateArmJoints(angles);
+      lastLocalCommandMs = performance.now();
+      const rawAngles = sliders.map((el) => parseInt(el.value, 10));
+      const safeAngles = twin.clampArmAngles(rawAngles);
+      setSlidersUI(safeAngles);
+      twin.updateArmJoints(safeAngles);
       ensureArmVisibleIn3D();
-      telemetry.sendArmCommand(angles, "MANUAL");
+      telemetry.sendArmCommand(safeAngles, "MANUAL");
     });
   });
+
+  // 180-Deg Physical Servo Calibration & Auto-Home Controls
+  const btnAutoCal = $("btn-autocal");
+  const btnToggleCal = $("btn-toggle-cal");
+  const btnResetCal = $("btn-reset-cal");
+  const calDrawer = $("cal-drawer");
+  const calRowsEl = $("cal-rows");
+  const jointNamesShort = ["1. Base", "2. Shoulder", "3. Elbow", "4. Wrist", "5. Roll"];
+  let servoTrim = [0, 0, 0, 0, 0];
+  let servoDir = [1, 1, 1, 1, 1];
+  try {
+    const savedCal = JSON.parse(localStorage.getItem("esp32_servo_cal") || "null");
+    if (savedCal && Array.isArray(savedCal.trim) && Array.isArray(savedCal.dir)) {
+      servoTrim = savedCal.trim.map((n) => Math.max(-45, Math.min(45, Number(n) || 0)));
+      servoDir = savedCal.dir.map((n) => (Number(n) < 0 ? -1 : 1));
+    }
+  } catch (_) {}
+
+  function pushCalibrationToESP32() {
+    try {
+      localStorage.setItem("esp32_servo_cal", JSON.stringify({ trim: servoTrim, dir: servoDir }));
+    } catch (_) {}
+    const calModeStr = `CAL:${servoTrim.join(",")}:${servoDir.join(",")}`;
+    const curAngles = sliders.map((el) => parseInt(el.value, 10));
+    lastLocalCommandMs = performance.now();
+    telemetry.sendArmCommand(curAngles, calModeStr);
+  }
+
+  function renderCalibrationRows() {
+    if (!calRowsEl) return;
+    calRowsEl.innerHTML = "";
+    jointNamesShort.forEach((name, idx) => {
+      const row = document.createElement("div");
+      row.style.cssText = "display:flex; align-items:center; justify-content:space-between; gap:4px; padding:2px 0;";
+      const dirLabel = servoDir[idx] > 0 ? "Norm (+)" : "Inv (-)";
+      const sign = servoTrim[idx] > 0 ? "+" : "";
+      row.innerHTML = `
+        <span style="min-width:66px; color:var(--text-1);">${name}</span>
+        <div style="display:flex; align-items:center; gap:3px;">
+          <button type="button" class="btn small" data-trim-idx="${idx}" data-trim-step="-2" style="padding:1px 6px;">-2°</button>
+          <b style="min-width:34px; text-align:center; font-variant-numeric:tabular-nums;">${sign}${servoTrim[idx]}°</b>
+          <button type="button" class="btn small" data-trim-idx="${idx}" data-trim-step="2" style="padding:1px 6px;">+2°</button>
+          <button type="button" class="btn small ${servoDir[idx] < 0 ? "primary" : ""}" data-dir-idx="${idx}" style="padding:1px 6px; min-width:54px;">${dirLabel}</button>
+        </div>
+      `;
+      calRowsEl.appendChild(row);
+    });
+
+    calRowsEl.querySelectorAll("[data-trim-idx]").forEach((b) => {
+      b.addEventListener("click", () => {
+        const i = Number(b.getAttribute("data-trim-idx"));
+        const step = Number(b.getAttribute("data-trim-step"));
+        servoTrim[i] = Math.max(-45, Math.min(45, servoTrim[i] + step));
+        renderCalibrationRows();
+        pushCalibrationToESP32();
+        showToast(`${jointNamesShort[i]} trim: ${servoTrim[i] > 0 ? "+" : ""}${servoTrim[i]}° (saved to ESP32)`);
+      });
+    });
+
+    calRowsEl.querySelectorAll("[data-dir-idx]").forEach((b) => {
+      b.addEventListener("click", () => {
+        const i = Number(b.getAttribute("data-dir-idx"));
+        servoDir[i] = -servoDir[i];
+        renderCalibrationRows();
+        pushCalibrationToESP32();
+        showToast(`${jointNamesShort[i]} direction: ${servoDir[i] > 0 ? "Normal (+)" : "Inverted (-)"}`);
+      });
+    });
+  }
+  renderCalibrationRows();
+
+  if (btnToggleCal && calDrawer) {
+    btnToggleCal.addEventListener("click", () => {
+      calDrawer.classList.toggle("hide");
+    });
+  }
+
+  if (btnResetCal) {
+    btnResetCal.addEventListener("click", () => {
+      servoTrim = [0, 0, 0, 0, 0];
+      servoDir = [1, 1, 1, 1, 1];
+      renderCalibrationRows();
+      pushCalibrationToESP32();
+      showToast("All 180° servo trims reset to 0° and Normal direction");
+    });
+  }
+
+  if (btnAutoCal) {
+    btnAutoCal.addEventListener("click", () => {
+      setArmMode("MANUAL", true);
+      highlightPreset("home");
+      lastLocalCommandMs = performance.now();
+      const homeAngles = PRESETS.home.angles;
+      setSlidersUI(homeAngles);
+      twin.updateArmJoints(homeAngles);
+      telemetry.sendArmCommand(homeAngles, "CALIBRATE");
+      showToast("ESP32-S3 executing 180° sequential auto-calibration & homing...");
+    });
+  }
 
   // Preset buttons
   presetButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
       const key = btn.getAttribute("data-preset");
       highlightPreset(key);
+      lastLocalCommandMs = performance.now();
       if (key === "sun") {
         setArmMode("AUTO", true);
         showToast("Solar panel oriented perpendicular to the Sun");
@@ -706,9 +812,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       setArmMode("MANUAL", true);
       highlightPreset(key);
       const preset = PRESETS[key] || PRESETS.home;
-      setSlidersUI(preset.angles);
-      twin.updateArmJoints(preset.angles);
-      telemetry.sendArmCommand(preset.angles, "PRESET");
+      const safePresetAngles = twin.clampArmAngles(preset.angles);
+      setSlidersUI(safePresetAngles);
+      twin.updateArmJoints(safePresetAngles);
+      telemetry.sendArmCommand(safePresetAngles, key === "home" ? "CALIBRATE" : "PRESET");
       showToast(preset.label);
     });
   });

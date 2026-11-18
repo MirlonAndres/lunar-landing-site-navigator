@@ -38,13 +38,13 @@ class LunarDigitalTwin {
       { px: 1380, py: 2620, label: "Faustini Rim A" }      // Site 04: Deep cryogenic crater rim
     ];
 
-    // Anatomical / mechanical joint limits matching physical 3D-printed arm [min, max]
+    // Anatomical / mechanical joint limits matching physical 3D-printed arm & solar panel [min, max]
     this.jointLimits = [
       [25, 155], // Joint 0: Base Turntable Yaw
-      [35, 115], // Joint 1: Shoulder Pitch
-      [40, 125], // Joint 2: Elbow Flexion
-      [40, 135], // Joint 3: Wrist Pitch
-      [30, 150]  // Joint 4: Panel Roll
+      [35, 110], // Joint 1: Shoulder Pitch
+      [40, 120], // Joint 2: Elbow Flexion
+      [45, 130], // Joint 3: Wrist Pitch (panel clearance)
+      [35, 145]  // Joint 4: Panel Roll (panel corner clearance)
     ];
 
     // Smooth 5-DOF Robotic Arm interpolation state (calibrated home posture)
@@ -1049,16 +1049,43 @@ class LunarDigitalTwin {
   }
 
   /**
-   * Clamps a 5-DOF angle array to the anatomical/mechanical limits of each physical joint.
-   * Restringe los 5 angulos a los limites anatomicos/mecanicos de cada articulacion fisica.
+   * Clamps a 5-DOF angle array to the anatomical/mechanical limits of each physical joint
+   * AND enforces coupled geometric constraints for the physical solar panel size.
    */
   clampArmAngles(angles) {
     if (!angles || angles.length < 5) return [90, 55, 60, 70, 90];
-    return this.jointLimits.map(([minA, maxA], i) => {
+    const home = [90, 55, 60, 70, 90];
+    const a = this.jointLimits.map(([minA, maxA], i) => {
       const v = Number(angles[i]);
-      if (Number.isNaN(v)) return (minA + maxA) * 0.5;
+      if (Number.isNaN(v)) return home[i];
       return Math.max(minA, Math.min(maxA, v));
     });
+
+    // 1. Coupled Ground/Base Clearance Guard (Shoulder j1 + Elbow j2 + Wrist j3)
+    const reachSum = a[1] + a[2];
+    if (reachSum > 165) {
+      const excess = reachSum - 165;
+      a[2] = Math.max(this.jointLimits[2][0], Math.min(this.jointLimits[2][1], a[2] - excess * 0.6));
+      a[1] = Math.max(this.jointLimits[1][0], Math.min(this.jointLimits[1][1], a[1] - excess * 0.4));
+    }
+    if ((a[1] + a[2]) > 145) {
+      const maxSafeWrist = 115 - ((a[1] + a[2]) - 145) * 0.75;
+      if (a[3] > maxSafeWrist) {
+        a[3] = Math.max(55, Math.min(this.jointLimits[3][1], maxSafeWrist));
+      }
+    }
+
+    // 2. Coupled Forearm Self-Collision Guard (when elbow is tightly flexed < 52 deg)
+    if (a[2] < 52) {
+      a[3] = Math.max(55, Math.min(115, a[3]));
+    }
+
+    // 3. Solar Panel Corner Roll Guard (when wrist is steeply pitched)
+    if (a[3] < 58 || a[3] > 110) {
+      a[4] = Math.max(55, Math.min(125, a[4]));
+    }
+
+    return a.map((v) => Math.round(v));
   }
 
   /**
